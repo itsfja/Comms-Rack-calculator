@@ -175,6 +175,17 @@
   .runbtn:hover { filter: brightness(1.08); }
   .runbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   #runStatus { font-size: 12px; color: var(--muted); }
+  .gallery { grid-column: 1 / -1; }
+  .gal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 10px; }
+  .gal-card { border: 1px solid var(--line); border-radius: 10px; background: var(--panel2); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .gal-card h4 { margin: 0; font-size: 14px; font-family: var(--font-display); font-weight: 600; }
+  .gal-card .by { font-size: 12px; color: var(--muted); }
+  .gal-card .by a { color: var(--accent); text-decoration: none; }
+  .gal-card .by a:hover { text-decoration: underline; }
+  .gal-card .tot { font-family: var(--font-mono); font-size: 11px; color: var(--ok); }
+  .gal-card button { align-self: flex-start; margin-top: auto; font: inherit; font-size: 12px; background: var(--accent); color: var(--accent-ink); border: none; border-radius: 8px; padding: 6px 12px; font-weight: 700; cursor: pointer; }
+  .gal-card button:hover { filter: brightness(1.08); }
+
   .toast {
     position: fixed; right: 24px; bottom: 24px; max-width: 360px; z-index: 50;
     background: var(--panel); border: 1px solid var(--accent); border-radius: 12px; padding: 14px 16px;
@@ -195,7 +206,7 @@
 </head>
 <body>
 <header>
-  <h1>🎛️ 10" Rack U Calculator <span class="ver">v0.6.0</span></h1>
+  <h1>🎛️ 10" Rack U Calculator <span class="ver">v0.6.1</span></h1>
   <p>Plan your 10-inch rack: pick kit, allow a patch/jack panel per device, and watch the elevation fill live.</p>
 </header>
 
@@ -300,6 +311,13 @@
         <button class="chip" id="addCustom">＋ Add to rack</button>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="card gallery">
+    <h2>Example builds <small>— from the mini-rack community, with thanks</small></h2>
+    <div class="gal-grid" id="gallery"></div>
   </div>
 </div>
 
@@ -610,6 +628,77 @@ $("printBtn").addEventListener("click", () => window.print());
 $("resetBtn").addEventListener("click", () => {
   state.items = []; state.spacerU = 0; rebuild();
 });
+
+/* ---------- Example builds (community, with attribution) ---------- */
+const EXAMPLES = [
+  {
+    key: "minirack", name: "Pi + switch starter",
+    by: "after Jeff Geerling's Project MINI RACK", url: "https://github.com/geerlingguy/mini-rack",
+    rack: 6, items: [["pi4", 1, false], ["flexmini", 1, false], ["pp24", 1, true], ["pdu", 1, false]],
+    desc: "Portable starter: a Pi, a Flex Mini and a patch panel in a 6U — the kind of compact rig Project MINI RACK documents."
+  },
+  {
+    key: "nucpair", name: "Twin-NUC ESXi pair",
+    by: "after Flow's NUC rackmount kits (virten.net)", url: "https://www.printables.com/@fgr_93152",
+    rack: 9, items: [["nuc10", 2, false], ["sw8", 1, false], ["pp24", 1, true], ["pdu", 1, false], ["fan", 1, false]],
+    desc: "Flow's 1.5U NUC cages fit two NUCs in 3U, with a keystone-cut front panel — the classic mini-ESXi pair."
+  },
+  {
+    key: "unifi", name: "UniFi network stack",
+    by: "after u/airblader's first 10\" network rack (r/homelab)", url: "https://www.reddit.com/r/homelab/comments/1r22ibv/first_build_10_inch_network_rack/",
+    rack: 9, items: [["ucgfiber", 1, true], ["flexmini25", 2, false], ["crs305", 1, false], ["pp24", 1, true], ["ups", 1, false]],
+    desc: "Gateway Fiber at the top, Flex Minis stacked in shared mounts, CRS305 for 10G — a proper UniFi comms rack."
+  },
+  {
+    key: "thinknas", name: "ThinkNAS + Pi + screen",
+    by: "after milo-o7's homelab (GitHub)", url: "https://github.com/milo-o7/homelab",
+    rack: 12, items: [["nvr", 2, false], ["pi4", 1, false], ["sw8", 1, false], ["pp24", 1, true], ["shelf", 1, false], ["pdu", 1, false]],
+    desc: "A bedroom-quiet 12U: NAS on a shelf, Pi on a mount, patch panel and brush strip — milo-o7's GeeekPi T2 layout."
+  },
+  {
+    key: "francis", name: "Francis's full kit",
+    by: "the owner's own kit", url: "https://github.com/itsfja/Comms-Rack-calculator",
+    rack: 12, items: [["nuc10", 2, false], ["pi4", 1, false], ["ucgfiber", 1, true], ["flexmini", 2, false], ["flexmini25", 2, false], ["crs305", 1, false], ["f4425pro", 1, false], ["shelf", 1, false]],
+    desc: "Everything on the list: two NUCs, Pi, UCG-Fiber with jack panel, four Flex Minis, CRS305 and the 4U TerraMaster — 16U of kit in a 12U, so trim jack panels or share Flex mounts to fit."
+  }
+];
+
+function loadExample(ex) {
+  state.rackSize = ex.rack;
+  state.items = ex.items.map(([key, qty, jack]) => {
+    const d = findDevice(key);
+    return {
+      key, name: d.name, u: d.u, qty, jack, cat: d.cat,
+      color: COLORS[state.items.length % COLORS.length],
+      icon: d.icon, ports: d.ports, stl: d.stl, img: d.img, note: d.note
+    };
+  });
+  rebuild();
+}
+
+function renderGallery() {
+  const g = $("gallery");
+  if (!g) return;
+  g.innerHTML = EXAMPLES.map(ex => {
+    const tot = ex.items.reduce((a, [key, qty, jack]) => a + ((findDevice(key).u + (jack ? 1 : 0)) * qty), 0);
+    return `<div class="gal-card" data-key="${ex.key}">
+      <h4>${ex.name}</h4>
+      <div class="by">${ex.by} · <a href="${ex.url}" target="_blank" rel="noopener">source ↗</a></div>
+      <div class="tot">${ex.rack}U rack · ${tot}U of kit</div>
+      <p style="font-size:12px;color:var(--muted);margin:0">${ex.desc}</p>
+      <button data-load="${ex.key}">Load build</button>
+    </div>`;
+  }).join("");
+}
+
+$("gallery").addEventListener("click", e => {
+  const b = e.target.closest("button[data-load]");
+  if (!b) return;
+  const ex = EXAMPLES.find(x => x.key === b.dataset.load);
+  if (ex) loadExample(ex);
+});
+
+renderGallery();
 
 /* ---------- Google Blockly rules engine ---------- */
 (function loadBlockly() {
