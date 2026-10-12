@@ -43,6 +43,8 @@
   }
   header p { color: var(--muted); font-size: 13px; margin-top: 2px; }
   header .ver { font-family: var(--font-mono); font-size: 12px; color: var(--accent); font-weight: 500; vertical-align: middle; }
+  .ex-pick { white-space: nowrap; margin-left: 10px; }
+  .ex-pick select { font-size: 12.5px; padding: 4px 8px; max-width: 320px; }
   .wrap { display: grid; grid-template-columns: 1fr 420px; gap: 12px; padding: 0 0 24px; }
   @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
 
@@ -215,8 +217,14 @@
 </head>
 <body>
 <header>
-  <h1>🎛️ 10" Rack U Calculator <span class="ver">v0.7.0</span></h1>
-  <p>Plan your 10-inch rack: pick kit, allow a patch/jack panel per device, and watch the elevation fill live.</p>
+  <h1>🎛️ 10" Rack U Calculator <span class="ver">v0.8.0</span></h1>
+  <p>Plan your 10-inch rack: pick kit, allow a patch/jack panel per device, and watch the elevation fill live.
+     <span class="ex-pick">Example:
+       <select id="examplePick" title="Load a community example build">
+         <option value="">choose a build…</option>
+       </select>
+     </span>
+  </p>
 </header>
 
 <div class="wrap">
@@ -323,13 +331,6 @@
         <button class="chip" id="addCustom">＋ Add to rack</button>
       </div>
     </div>
-  </div>
-</div>
-
-<div class="wrap">
-  <div class="card gallery">
-    <h2>Example builds <small>— from the mini-rack community, with thanks</small></h2>
-    <div class="gal-grid" id="gallery"></div>
   </div>
 </div>
 
@@ -706,29 +707,21 @@ function loadExample(ex) {
   rebuild();
 }
 
-function renderGallery() {
-  const g = $("gallery");
-  if (!g) return;
-  g.innerHTML = EXAMPLES.map(ex => {
-    const tot = ex.items.reduce((a, [key, qty, jack]) => a + ((findDevice(key).u + (jack ? 1 : 0)) * qty), 0);
-    return `<div class="gal-card" data-key="${ex.key}">
-      <h4>${ex.name}</h4>
-      <div class="by">${ex.by} · <a href="${ex.url}" target="_blank" rel="noopener">source ↗</a></div>
-      <div class="tot">${ex.rack}U rack · ${tot}U of kit</div>
-      <p style="font-size:12px;color:var(--muted);margin:0">${ex.desc}</p>
-      <button data-load="${ex.key}">Load build</button>
-    </div>`;
-  }).join("");
-}
-
-$("gallery").addEventListener("click", e => {
-  const b = e.target.closest("button[data-load]");
-  if (!b) return;
-  const ex = EXAMPLES.find(x => x.key === b.dataset.load);
-  if (ex) loadExample(ex);
-});
-
-renderGallery();
+(function fillExamplePicker() {
+  const sel = $("examplePick");
+  if (!sel) return;
+  EXAMPLES.forEach(ex => {
+    const creator = ex.by.replace(/^after /, "").replace(/'s.*$/, "").replace(/ \(.*\)$/, "");
+    const o = document.createElement("option");
+    o.value = ex.key;
+    o.textContent = `${ex.name} — ${creator}`;
+    sel.appendChild(o);
+  });
+  sel.addEventListener("change", () => {
+    const ex = EXAMPLES.find(x => x.key === sel.value);
+    if (ex) loadExample(ex);
+  });
+})();
 
 /* ---------- Google Blockly rules engine ---------- */
 (function loadBlockly() {
