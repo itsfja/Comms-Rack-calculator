@@ -147,6 +147,14 @@
         </select>
       </div>
       <div>
+        <label>Numbering</label>
+        <select id="numScheme" title="How the rack numbers its U slots">
+          <option value="b0" selected>Bottom U0, upwards</option>
+          <option value="b1">Bottom U1, upwards</option>
+          <option value="t1">Top U1, downwards</option>
+        </select>
+      </div>
+      <div>
         <label>Jack panel U (per device)</label>
         <input type="number" id="jackU" min="0" max="2" step="1" value="1" title="U reserved for a patch/jack panel in front of each device">
       </div>
@@ -217,7 +225,15 @@ const CATALOG = [
   { name: "Fan tray", u: 1, icon: "🌀" },
 ];
 
-let state = { rackSize: 9, jackU: 1, spacerU: 0, items: [] };
+let state = { rackSize: 9, jackU: 1, spacerU: 0, numScheme: "b0", items: [] };
+
+// slot index 0 = bottom slot ... size-1 = top slot
+function slotLabel(i, size) {
+  const sc = state.numScheme;
+  if (sc === "b0") return "U" + i;
+  if (sc === "b1") return "U" + (i + 1);
+  return "U" + (size - i);
+}
 try {
   const s = JSON.parse(localStorage.getItem("rack-calc") || "null");
   if (s && Array.isArray(s.items)) state = Object.assign(state, s);
@@ -246,20 +262,20 @@ function rebuild() {
       rows.push({ name: it.name, u: it.u, tag: it.u + "U", color: it.color, jackAfter: it.jack && state.jackU > 0 ? state.jackU : 0, icon: it.icon });
     }
   });
-  let pos = size;
+  let pos = 0;
   const render = (name, icon, tag, color, jack) => {
-    html += block(name, icon, tag, color, pos, jack);
-    pos -= 1;
+    html = block(name, icon, tag, color, pos, jack) + html;
+    pos += 1;
   };
   for (const r of rows) {
-    if (pos < 1) break;
+    if (pos >= size) break;
     render(r.name, r.icon, r.tag, r.color, false);
-    for (let j = 1; j < r.u && pos >= 1; j++) render("", "", "", r.color, false);
-    for (let j = 0; j < r.jackAfter && pos >= 1; j++) render("", "", state.jackU + "U", "", true);
+    for (let j = 1; j < r.u && pos < size; j++) render("", "", "", r.color, false);
+    for (let j = 0; j < r.jackAfter && pos < size; j++) render("", "", state.jackU + "U", "", true);
   }
-  for (let s = 0; s < state.spacerU && pos >= 1; s++) render("Blank / ventilation", "\u25ab\ufe0f", "1U", "#3b4666", false);
-  for (let u = pos; u >= 1; u--) {
-    html += `<div class="ru empty-ru"><span class="num">U${u}</span><span class="fill"></span><span style="opacity:.35;font-size:9px">free</span></div>`;
+  for (let s = 0; s < state.spacerU && pos < size; s++) render("Blank / ventilation", "\u25ab\ufe0f", "1U", "#3b4666", false);
+  for (let i = size - 1; i >= pos; i--) {
+    html = `<div class="ru empty-ru"><span class="num">${slotLabel(i, size)}</span><span class="fill"></span><span style="opacity:.35;font-size:9px">free</span></div>` + html;
   }
   if (over > 0) {
     html += `<div class="ru empty-ru" style="border-color:var(--bad)"><span class="num" style="color:var(--bad)">!</span><span class="fill" style="border-color:var(--bad)"></span><span style="color:var(--bad);font-size:10px">⚠ ${over}U over capacity</span></div>`;
@@ -298,6 +314,7 @@ function rebuild() {
     : `<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:20px">Add kit from the catalogue above ↑</td></tr>`;
 
   $("rackSize").value = state.rackSize;
+  $("numScheme").value = state.numScheme;
   $("jackU").value = state.jackU;
   $("spacerU").value = state.spacerU;
   save();
@@ -307,7 +324,7 @@ function block(name, icon, tag, color, uNum, jack) {
   const bg = jack ? "#475569" : `linear-gradient(180deg,${color},${color}cc)`;
   const label = jack ? "\ud83e\ude9b Jack / patch panel" : `<span class="devicon">${icon || "\ud83d\udce6"}</span>${name}`;
   return `<div class="ru dev-ru jack" style="background:${bg}">` +
-    `<span class="num">U${uNum}</span><span class="name">${label}</span>` +
+    `<span class="num">${slotLabel(uNum, state.rackSize)}</span><span class="name">${label}</span>` +
     (tag ? `<span class="tag">${tag}</span>` : "") + `</div>`;
 }
 
@@ -349,6 +366,7 @@ $("addCustom").addEventListener("click", () => {
 });
 
 $("rackSize").addEventListener("change", e => { state.rackSize = +e.target.value; rebuild(); });
+$("numScheme").addEventListener("change", e => { state.numScheme = e.target.value; rebuild(); });
 $("jackU").addEventListener("input", e => { state.jackU = Math.max(0, Math.min(2, +e.target.value || 0)); rebuild(); });
 $("spacerU").addEventListener("input", e => { state.spacerU = Math.max(0, Math.min(4, +e.target.value || 0)); rebuild(); });
 $("printBtn").addEventListener("click", () => window.print());

@@ -77,10 +77,11 @@ Peter takes out the fan tray. Now it fits. *"Fits with 2U to spare,"* says the c
 ## Page 6: How to Use It
 
 1. **Choose the rack.** Four U, six U, nine U, ten U, or twelve U.
-2. **Click your kit.** Switches, patch panels, recorders, and more. Or type in your own.
-3. **Say yes or no to jack panels** for each thing, with the little switch.
-4. **Watch the picture** fill up and the numbers change.
-5. **Press Print** if you would like the plan on paper.
+2. **Choose the numbering.** Some racks start counting at the bottom, from nought. Some count from the top. Peter does not know which his rack will be, so the calculator lets him choose.
+3. **Click your kit.** Switches, patch panels, recorders, and more. Or type in your own.
+4. **Say yes or no to jack panels** for each thing, with the little switch.
+5. **Watch the picture** fill up and the numbers change.
+6. **Press Print** if you would like the plan on paper.
 
 The calculator **remembers** your plan in the browser, so it is still there when you come back.
 
