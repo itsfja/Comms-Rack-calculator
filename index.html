@@ -42,6 +42,7 @@
     letter-spacing: -.01em; margin: 0; color: var(--ink); text-wrap: balance;
   }
   header p { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  header .ver { font-family: var(--font-mono); font-size: 12px; color: var(--accent); font-weight: 500; vertical-align: middle; }
   .wrap { display: grid; grid-template-columns: 1fr 420px; gap: 12px; padding: 0 0 24px; }
   @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
 
@@ -96,6 +97,25 @@
   .switch input:checked + .slider:before { transform: translateX(16px); }
 
   .elevation { margin-top: 18px; }
+  .phys-head { display: flex; align-items: baseline; gap: 10px; margin: 18px 0 8px; }
+  .phys-head h2 { margin-bottom: 0; }
+  .phys-scale { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+  .phys-rack {
+    width: 381px; max-width: 100%; margin: 0 auto;
+    background: var(--panel2); border: 2px solid var(--line); border-radius: 8px;
+    padding: 16px 18px; display: flex; flex-direction: column-reverse; gap: 0;
+  }
+  .phys-ru { position: relative; height: 66.7px; border-top: 1px solid var(--line); overflow: hidden; }
+  .phys-ru:first-child { border-top: none; }
+  .phys-ru .lbl { position: absolute; left: 8px; top: 4px; font-family: var(--font-mono); font-size: 10px; color: var(--muted); opacity: .7; z-index: 1; }
+  .phys-ru .body {
+    position: absolute; inset: 0; display: flex; align-items: center; gap: 8px;
+    color: #fff; font-weight: 600; font-size: 12px; padding: 0 10px 0 40px; overflow: hidden;
+  }
+  .phys-ru .body img { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); height: 92%; max-width: 45%; object-fit: contain; opacity: .9; }
+  .phys-ru .body .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; z-index: 1; }
+  .phys-free { height: 66.7px; display: flex; align-items: center; padding-left: 40px; color: var(--muted); font-size: 11px; border-top: 1px dashed var(--line); position: relative; }
+  .phys-free .lbl { position: absolute; left: 8px; top: 4px; font-family: var(--font-mono); font-size: 10px; opacity: .7; }
   .rack {
     background: var(--panel2); border: 2px solid var(--line); border-radius: 12px;
     padding: 14px 16px; display: flex; flex-direction: column-reverse; gap: 3px;
@@ -175,13 +195,13 @@
 </head>
 <body>
 <header>
-  <h1>🎛️ 10" Rack U Calculator</h1>
+  <h1>🎛️ 10" Rack U Calculator <span class="ver">v0.6.0</span></h1>
   <p>Plan your 10-inch rack: pick kit, allow a patch/jack panel per device, and watch the elevation fill live.</p>
 </header>
 
 <div class="wrap">
   <div class="card">
-    <h2>Rack elevation <small>— fills bottom-up, front view</small></h2>
+    <h2>Logical view <small>— U-slot elevation, fills bottom-up</small></h2>
 
     <div class="controls">
       <div>
@@ -249,7 +269,13 @@
   </div>
 
   <div class="card">
-    <h2>Build list <small>— your kit</small></h2>
+    <div class="phys-head">
+      <h2>Physical view</h2>
+      <span class="phys-scale">10" rack · 1U = 44.45mm · to scale</span>
+    </div>
+    <div class="phys-rack" id="physRack"></div>
+
+    <h2 style="margin-top:18px">Build list <small>— your kit</small></h2>
     <div style="overflow-x:auto">
       <table>
         <thead>
@@ -402,6 +428,51 @@ function addItem(dev) {
   showStlOffer(dev);
 }
 
+function renderPhys() {
+  const el = $("physRack");
+  if (!el) return;
+  const size = state.rackSize;
+  const rows = [];
+  state.items.forEach(it => {
+    for (let q = 0; q < it.qty; q++) {
+      rows.push({ name: it.name, u: it.u, color: it.color, img: it.img,
+        jackAfter: it.jack && state.jackU > 0 ? state.jackU : 0 });
+    }
+  });
+  let pos = 0;
+  let html = "";
+  const cell = (r, uIdx) => {
+    const h = Math.round(66.7 * Math.min(r.u, size - uIdx));
+    const img = r.img ? `<img src="${r.img}" alt="" loading="lazy">` : "";
+    return `<div class="phys-ru" style="height:${h}px;background:linear-gradient(180deg,${r.color},${r.color}bb)">
+      <span class="lbl">${slotLabel(uIdx, size)}</span>
+      <div class="body"><span class="nm">${r.name}</span>${img}</div>
+    </div>`;
+  };
+  for (const r of rows) {
+    if (pos >= size) break;
+    if (r.u === 0) continue;
+    html += cell(r, pos);
+    pos += r.u;
+    for (let j = 0; j < r.jackAfter && pos < size; j++) {
+      const hj = Math.round(66.7 * state.jackU);
+      html += `<div class="phys-ru" style="height:${hj}px;background:#475569">
+        <span class="lbl">${slotLabel(pos, size)}</span>
+        <div class="body"><span class="nm">🪛 Jack / patch panel</span></div>
+      </div>`;
+      pos += state.jackU;
+    }
+  }
+  for (let s2 = 0; s2 < state.spacerU && pos < size; s2++) {
+    html += `<div class="phys-ru" style="background:#3b4666"><span class="lbl">${slotLabel(pos, size)}</span><div class="body"><span class="nm">Blank / ventilation</span></div></div>`;
+    pos += 1;
+  }
+  for (let i = pos; i < size; i++) {
+    html += `<div class="phys-free"><span class="lbl">${slotLabel(i, size)}</span>free</div>`;
+  }
+  el.innerHTML = html;
+}
+
 function rebuild() {
   const rack = $("rack");
   const used = state.items.reduce((a, it) => a + itemTotal(it), 0);
@@ -439,6 +510,7 @@ function rebuild() {
     out.push(`<div class="ru empty-ru" style="border-color:var(--bad)"><span class="num" style="color:var(--bad)">!</span><span class="fill" style="border-color:var(--bad)"></span><span style="color:var(--bad);font-size:10px">\u26a0 ${over}U over capacity</span></div>`);
   }
   rack.innerHTML = out.join("");
+  renderPhys();
 
   const pct = Math.round((used / size) * 100);
   $("stUsed").innerHTML = `<b>${used}U</b><span>Used</span>`;
@@ -625,16 +697,25 @@ function initBlockly() {
     toolbox: {
       kind: "categoryToolbox",
       contents: [
-        { kind: "category", name: "Rack", colour: "230", contents: [
-          { kind: "block", blockxml: '<block type="rack_add_device"><field name="DEV">ucgfiber</field></block>' },
+        { kind: "category", name: "Comms kit", colour: "210", contents:
+          KIT.filter(d => d.cat === "comms").map(d => ({ kind: "block", blockxml: `<block type="rack_add_device"><field name="DEV">${d.key}</field></block>` })) },
+        { kind: "category", name: "Storage", colour: "280", contents:
+          KIT.filter(d => d.cat === "storage").map(d => ({ kind: "block", blockxml: `<block type="rack_add_device"><field name="DEV">${d.key}</field></block>` })) },
+        { kind: "category", name: "Power & cooling", colour: "25", contents:
+          GENERIC.filter(d => d.cat === "power").map(d => ({ kind: "block", blockxml: `<block type="rack_add_device"><field name="DEV">${d.key}</field></block>` })) },
+        { kind: "category", name: "Passive", colour: "170", contents:
+          GENERIC.filter(d => d.cat === "passive").map(d => ({ kind: "block", blockxml: `<block type="rack_add_device"><field name="DEV">${d.key}</field></block>` })) },
+        { kind: "category", name: "Generic comms", colour: "195", contents:
+          GENERIC.filter(d => d.cat === "comms").map(d => ({ kind: "block", blockxml: `<block type="rack_add_device"><field name="DEV">${d.key}</field></block>` })) },
+        { kind: "category", name: "Rack setup", colour: "160", contents: [
           { kind: "block", blockxml: '<block type="rack_set_rack"></block>' },
           { kind: "block", blockxml: '<block type="rack_set_jacku"></block>' },
-          { kind: "block", blockxml: '<block type="rack_clear"></block>' }
+          { kind: "block", blockxml: '<block type="rack_clear"></block>' },
+          { kind: "block", blockxml: '<block type="rack_free_u"></block>' }
         ]},
         { kind: "category", name: "Logic", colour: "210", contents: [
           { kind: "block", blockxml: '<block type="controls_if"></block>' },
-          { kind: "block", blockxml: '<block type="logic_compare"></block>' },
-          { kind: "block", blockxml: '<block type="rack_free_u"></block>' }
+          { kind: "block", blockxml: '<block type="logic_compare"></block>' }
         ]},
         { kind: "category", name: "Loops", colour: "120", contents: [
           { kind: "block", blockxml: '<block type="controls_repeat_ext"></block>' }

@@ -146,3 +146,19 @@ The calculator is one file called `index.html`. It has no moving parts and needs
 Open it in any browser and it just works.
 
 *The ladybird is now sitting on the top U of the rack. It likes the warm air from the fan tray.*
+
+---
+
+## Page 11: Two Pictures of One Rack
+
+*Picture: two drawings of the same rack. On the left, tidy labelled boxes. On the right, the rack as it truly is, tall and narrow.*
+
+Peter can now see his rack **two ways**.
+
+On the **left** is the *logical view*: one tidy box for each U, all the same size, with labels. It is good for counting.
+
+On the **right** is the *physical view*: the rack drawn **the real size** — ten inches wide, each U exactly as tall as a real U. The TerraMaster looks enormous, because it **is** enormous. Peter looks at it and says *"oh."*
+
+The magic bricks have new drawers too: one for the network things, one for the power things, one for the trays and blanks. Peter opens a drawer and takes the brick he needs.
+
+*(This is version nought point six. The ladybird approves.)*
