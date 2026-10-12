@@ -272,49 +272,49 @@
 <script>
 const KIT = [
   {
-    key: "nuc10", name: "Intel NUC (10th gen)", u: 2, icon: "\ud83d\udda5\ufe0f",
+    key: "nuc10", name: "Intel NUC (10th gen)", u: 2, icon: "\ud83d\udda5\ufe0f", cat: "comms",
     ports: ["2\u00d7 USB-A 3.2 Gen2", "1\u00d7 USB-C 3.2 Gen2", "1\u00d7 HDMI 2.0a", "1\u00d7 2.5GbE", "1\u00d7 3.5mm audio"],
     stl: { label: "Flow \u2014 10th Gen Intel NUC 10\" rackmount kit", url: "https://www.printables.com/model/450104-10th-gen-intel-nuc-10-inch-rackmount" },
     img: "https://media.printables.com/media/prints/450104/images/3708079_a11d82e9-d757-4062-8a57-3cf75735bef0/thumbs/cover/800x800/png/nuc10fnh-rack.png",
     note: "1.5U kit \u2014 occupies 2U of rail spacing"
   },
   {
-    key: "pi4", name: "Raspberry Pi 4", u: 1, icon: "\ud83e\udd67",
+    key: "pi4", name: "Raspberry Pi 4", u: 1, icon: "\ud83e\udd67", cat: "comms",
     ports: ["2\u00d7 USB 3.0", "2\u00d7 USB 2.0", "1\u00d7 GbE", "2\u00d7 micro-HDMI", "USB-C power"],
     stl: { label: "Maur\u00edcio Pessoa \u2014 Raspberry Pi 4B 10\" rack mount (holds 2)", url: "https://www.printables.com/model/932007-raspberry-pi-4b-10-inch-rack-mount" },
     img: "https://media.printables.com/media/prints/932007/images/7104080_945003a9-e929-41af-9d84-b621a09fadd9_4996c33e-6d58-4896-941c-54125e7fa0c5/thumbs/cover/800x800/jpg/closeup.jpg",
     note: null
   },
   {
-    key: "ucgfiber", name: "UniFi Cloud Gateway Fiber", u: 1, icon: "\ud83d\udee1\ufe0f",
+    key: "ucgfiber", name: "UniFi Cloud Gateway Fiber", u: 1, icon: "\ud83d\udee1\ufe0f", cat: "comms",
     ports: ["1\u00d7 10G RJ45 WAN", "2\u00d7 10G SFP+", "4\u00d7 2.5GbE LAN (1\u00d7 PoE+)", "0.96\" display"],
     stl: { label: "Maur\u00edcio Pessoa \u2014 UCG-Fiber 10\" rack mount", url: "https://www.printables.com/model/1235928-unifi-ucg-fiber-10-inch-rack-mount" },
     img: "https://media.printables.com/media/prints/579878c3-d274-455c-a12a-c072e4d851d2/images/10172029_32754a7c-892d-4f0d-a3f0-3a714df42e42_0bfc5be2-1158-4e39-b9c2-989c61b2625f/thumbs/cover/800x800/png/cover01.png",
     note: null
   },
   {
-    key: "flexmini", name: "UniFi Flex Mini", u: 1, icon: "\ud83d\udd0c",
+    key: "flexmini", name: "UniFi Flex Mini", u: 1, icon: "\ud83d\udd0c", cat: "comms",
     ports: ["4\u00d7 1GbE (1\u00d7 PoE out)", "USB-C power"],
     stl: { label: "Maur\u00edcio Pessoa \u2014 USW-Flex-Mini 10\" rack mount", url: "https://www.printables.com/model/1017871-ubiquiti-unifi-usw-flex-mini-10-inch-rack-mount" },
     img: "https://media.printables.com/media/prints/1017871/images/7732051_d3942643-8af1-47be-96dc-12d3dd351d94_43aff8f4-1cef-4ad9-af4a-96efd0d06cc9/thumbs/cover/800x800/png/modelsingle.png",
     note: "Mount holds 2 per 1U \u2014 stack your second Flex Mini"
   },
   {
-    key: "flexmini25", name: "UniFi Flex Mini 2.5G", u: 1, icon: "\ud83d\udd0c",
+    key: "flexmini25", name: "UniFi Flex Mini 2.5G", u: 1, icon: "\ud83d\udd0c", cat: "comms",
     ports: ["4\u00d7 2.5GbE", "1\u00d7 2.5G SFP", "USB-C power"],
     stl: { label: "Maur\u00edcio Pessoa \u2014 USW-Flex-Mini 2.5G 10\" rack mount", url: "https://www.printables.com/model/1025246-ubiquiti-unifi-usw-flex-mini-25g-5-10-inch-rack-mo" },
     img: "https://media.printables.com/media/prints/1025246/images/7785020_c70dfefa-d1ec-4771-a9c5-aa0c8d7cce4e_108477ff-3bee-4f23-a1c2-b433d87f7979/thumbs/cover/800x800/png/model.png",
     note: "Mount holds 2 per 1U \u2014 stack your second Flex Mini 2.5G"
   },
   {
-    key: "crs305", name: "MikroTik CRS305 (10G switch)", u: 1, icon: "\ud83d\udd00",
+    key: "crs305", name: "MikroTik CRS305 (10G switch)", u: 1, icon: "\ud83d\udd00", cat: "comms",
     ports: ["4\u00d7 10G SFP+", "1\u00d7 GbE", "DC power"],
     stl: { label: "Mauker \u2014 CRS305-1G-4S+IN 10\" rack mount", url: "https://www.printables.com/model/1343353-mikrotik-crs305-1g-4sin-10-inch-rack-mount" },
     img: "https://makerworld.bblmw.com/makerworld/model/US3657ace2fd1fcc/design/2025-07-01_076c568d685778.png",
     note: null
   },
   {
-    key: "f4425pro", name: "TerraMaster F4-425 Pro", u: 4, icon: "\ud83d\udcbe",
+    key: "f4425pro", name: "TerraMaster F4-425 Pro", u: 4, icon: "\ud83d\udcbe", cat: "storage",
     ports: ["2\u00d7 5GbE", "3\u00d7 USB-A 10Gbps", "1\u00d7 USB-C 10Gbps", "1\u00d7 HDMI"],
     stl: null,
     img: "https://www.terra-master.com/cdn/shop/files/F4-425-Pro-02.jpg",
@@ -323,15 +323,16 @@ const KIT = [
 ];
 
 const GENERIC = [
-  { key: "sw8", name: "1U Switch (8\u201312p)", u: 1, icon: "\ud83d\udd00", ports: null, stl: null, img: null, note: null },
-  { key: "sw24", name: "1U Switch (24p)", u: 1, icon: "\ud83d\udd00", ports: null, stl: null, img: null, note: null },
-  { key: "rtr", name: "Router / Firewall", u: 1, icon: "\ud83d\udee1\ufe0f", ports: null, stl: null, img: null, note: null },
-  { key: "pp24", name: "Patch panel (24p)", u: 1, icon: "\ud83e\ude9b", ports: null, stl: null, img: null, note: null },
-  { key: "nvr", name: "NVR / DVR", u: 2, icon: "\ud83d\udc9a", ports: null, stl: null, img: null, note: null },
-  { key: "ups", name: "UPS (1U)", u: 1, icon: "\ud83d\udd0b", ports: null, stl: null, img: null, note: null },
-  { key: "pdu", name: "Rack PDU", u: 1, icon: "\ud83d\udd0c", ports: null, stl: null, img: null, note: null },
-  { key: "shelf", name: "Shelf (passive, 0U)", u: 0, icon: "\ud83d\uddc4\ufe0f", ports: null, stl: null, img: null, note: null },
-  { key: "fan", name: "Fan tray", u: 1, icon: "\ud83c\udf00", ports: null, stl: null, img: null, note: null }
+  { key: "sw8", name: "1U Switch (8\u201312p)", u: 1, icon: "\ud83d\udd00", cat: "comms", ports: null, stl: null, img: null, note: null },
+  { key: "sw24", name: "1U Switch (24p)", u: 1, icon: "\ud83d\udd00", cat: "comms", ports: null, stl: null, img: null, note: null },
+  { key: "rtr", name: "Router / Firewall", u: 1, icon: "\ud83d\udee1\ufe0f", cat: "comms", ports: null, stl: null, img: null, note: null },
+  { key: "pp24", name: "Patch panel (24p)", u: 1, icon: "\ud83e\ude9b", cat: "passive", ports: null, stl: null, img: null, note: null },
+  { key: "blank", name: "Blank panel", u: 1, icon: "\u25ab\ufe0f", cat: "passive", ports: null, stl: null, img: null, note: null },
+  { key: "nvr", name: "NVR / DVR", u: 2, icon: "\ud83d\udc9a", cat: "comms", ports: null, stl: null, img: null, note: null },
+  { key: "ups", name: "UPS (1U)", u: 1, icon: "\ud83d\udd0b", cat: "power", ports: null, stl: null, img: null, note: null },
+  { key: "pdu", name: "Rack PDU", u: 1, icon: "\ud83d\udd0c", cat: "power", ports: null, stl: null, img: null, note: null },
+  { key: "shelf", name: "Shelf (passive, 0U)", u: 0, icon: "\ud83d\uddc4\ufe0f", cat: "passive", ports: null, stl: null, img: null, note: null },
+  { key: "fan", name: "Fan tray", u: 1, icon: "\ud83c\udf00", cat: "power", ports: null, stl: null, img: null, note: null }
 ];
 
 let state = { rackSize: 9, jackU: 1, spacerU: 0, numScheme: "b0", items: [], downloaded: [] };
@@ -359,6 +360,10 @@ function itemTotal(it) {
   return (it.u + jack) * it.qty;
 }
 
+function findDevice(key) {
+  return KIT.find(d => d.key === key) || GENERIC.find(d => d.key === key);
+}
+
 function showStlOffer(dev) {
   if (!dev.stl) return;
   if (state.downloaded.includes(dev.key)) return;
@@ -381,7 +386,7 @@ function addItem(dev) {
     key: dev.key, name: dev.name, u: dev.u, qty: 1,
     jack: dev.key === "pp24",
     color: COLORS[state.items.length % COLORS.length],
-    icon: dev.icon, ports: dev.ports, stl: dev.stl, img: dev.img, note: dev.note
+    icon: dev.icon, cat: dev.cat, ports: dev.ports, stl: dev.stl, img: dev.img, note: dev.note
   });
   rebuild();
   showStlOffer(dev);
@@ -547,6 +552,14 @@ function initBlockly() {
   const section = $("blocklySection");
   section.style.display = "";
 
+  const CAT_COLOURS = { comms: 210, power: 25, passive: 170, storage: 280 };
+  const catOf = key => (KIT.concat(GENERIC).find(d => d.key === key) || {}).cat;
+  Blockly.Blocks.rack_add_device = {
+    onchange: function() {
+      const c = CAT_COLOURS[catOf(this.getFieldValue("DEV"))] || 230;
+      if (this.getColour() !== c) this.setColour(c);
+    }
+  };
   Blockly.defineBlocksWithJsonArray([
     {
       type: "rack_add_device",
@@ -556,7 +569,7 @@ function initBlockly() {
         { type: "field_checkbox", name: "JACK", text: "with jack panel" }
       ],
       previousStatement: null, nextStatement: null,
-      colour: 230, tooltip: "Add one device to the rack",
+      colour: CAT_COLOURS.comms, tooltip: "Add one device to the rack — colour shows its family",
       helpUrl: ""
     },
     {
