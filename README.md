@@ -100,9 +100,9 @@ Peter has put his **real things** in the calculator. They are:
 * A **MikroTik 10G switch**
 * A big **TerraMaster NAS** called F4-425 Pro
 
-Each thing shows its **holes** — how many plugs it has, and how fast they go. The calculator counts them all up. Peter's kit is **13U**. Uh oh. Peter needs a bigger rack.
+Each thing shows its **holes** — how many plugs it has, and how fast they go. The calculator counts them all up. Peter's kit is **15U**. Uh oh. The TerraMaster is very tall — **fifteen centimetres**, which is nearly four U on its own. Peter needs a much bigger rack.
 
-The TerraMaster has **no printed mount**. Nobody has made one yet. It must sit on a **shelf**, like a fat cat on a ledge.
+The TerraMaster has **no printed mount**. Nobody has made one yet. It must sit on a **shelf**, like a fat cat on a very tall ledge.
 
 ---
 
