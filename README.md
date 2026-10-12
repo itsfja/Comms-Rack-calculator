@@ -1,4 +1,4 @@
-# The Ladybird Book of the Comms Rack Calculator
+# The Ladybird Book of Comms Rack Calculation
 
 *A guide for sensible people who wish to put their network things in a tidy box.*
 
