@@ -133,6 +133,13 @@
   .chip:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(56,189,248,.2); }
   .chip .u-badge { color: var(--accent); font-weight: 700; margin-left: 4px; }
 
+  .blockly-wrap { margin-top: 18px; }
+  .blockly-wrap h2 small { color: var(--muted); font-weight: 400; }
+  #blocklyDiv { width: 100%; height: 320px; background: #0d1424; border: 1px solid var(--line); border-radius: 10px; }
+  .blockly-btns { display: flex; gap: 8px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
+  .runbtn { background: var(--ok); color: #05261a; font-weight: 700; border: none; padding: 8px 18px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+  .runbtn:hover { filter: brightness(1.1); }
+  #runStatus { font-size: 12px; color: var(--muted); }
   .toast {
     position: fixed; right: 24px; bottom: 24px; max-width: 360px; z-index: 50;
     background: linear-gradient(180deg, var(--panel2), var(--panel));
@@ -206,6 +213,17 @@
     <div class="footer-actions">
       <button class="ghost" id="printBtn">🖨️ Print / PDF</button>
       <button class="ghost" id="resetBtn">↺ Reset rack</button>
+    </div>
+
+    <div class="blockly-wrap" id="blocklySection" style="display:none">
+      <h2> Blockly rules <small>— compose a build program, press Run</small></h2>
+      <div id="blocklyDiv"></div>
+      <div class="blockly-btns">
+        <button class="runbtn" id="runBlocks">▶ Run</button>
+        <button class="ghost" id="clearBlocks">🗑 Clear program</button>
+        <span id="runStatus"></span>
+      </div>
+      <p class="hint">Tip: an <b>add device</b> block appends one device. Use a <b>repeat</b> block to add several. Use <b>if</b> with <b>free U</b> to add conditionally. Running clears the rack first, then applies your blocks.</p>
     </div>
   </div>
 
@@ -494,6 +512,154 @@ $("printBtn").addEventListener("click", () => window.print());
 $("resetBtn").addEventListener("click", () => {
   state.items = []; state.spacerU = 0; rebuild();
 });
+
+/* ---------- Google Blockly rules engine ---------- */
+(function loadBlockly() {
+  const cdns = [
+    "https://unpkg.com/blockly/blockly.min.js",
+    "https://cdn.jsdelivr.net/npm/blockly/blockly.min.js"
+  ];
+  let i = 0;
+  const tryNext = () => {
+    if (i >= cdns.length) return;
+    const sc = document.createElement("script");
+    sc.src = cdns[i++];
+    sc.onload = initBlockly;
+    sc.onerror = tryNext;
+    document.head.appendChild(sc);
+  };
+  tryNext();
+})();
+
+function initBlockly() {
+  if (typeof Blockly === "undefined") return;
+  const section = $("blocklySection");
+  section.style.display = "";
+
+  Blockly.defineBlocksWithJsonArray([
+    {
+      type: "rack_add_device",
+      message0: "add %1 %2",
+      args0: [
+        { type: "field_dropdown", name: "DEV", options: KIT.concat(GENERIC).map(d => [d.name, d.key]) },
+        { type: "field_checkbox", name: "JACK", text: "with jack panel" }
+      ],
+      previousStatement: null, nextStatement: null,
+      colour: 230, tooltip: "Add one device to the rack",
+      helpUrl: ""
+    },
+    {
+      type: "rack_set_rack",
+      message0: "set rack height %1 U",
+      args0: [{ type: "field_number", name: "U", value: 9, min: 4, max: 12, precision: 1 }],
+      previousStatement: null, nextStatement: null,
+      colour: 160, tooltip: "Set the rack size", helpUrl: ""
+    },
+    {
+      type: "rack_set_jacku",
+      message0: "set jack panel U %1",
+      args0: [{ type: "field_number", name: "JU", value: 1, min: 0, max: 2, precision: 1 }],
+      previousStatement: null, nextStatement: null,
+      colour: 160, tooltip: "Set U per jack panel", helpUrl: ""
+    },
+    {
+      type: "rack_clear",
+      message0: "clear the rack",
+      previousStatement: null, nextStatement: null,
+      colour: 0, tooltip: "Empty the build list", helpUrl: ""
+    },
+    {
+      type: "rack_free_u",
+      message0: "free U",
+      output: "Number",
+      colour: 230, tooltip: "U still free in the rack", helpUrl: ""
+    }
+  ]);
+
+  Blockly.JavaScript.forBlock["rack_add_device"] = b => {
+    const key = Blockly.JavaScript.quote_(b.getFieldValue("DEV"));
+    const jack = b.getFieldValue("JACK") === "TRUE";
+    return `RACK_API.addDevice(${key}, ${jack});\n`;
+  };
+  Blockly.JavaScript.forBlock["rack_set_rack"] = b => `RACK_API.setRack(${b.getFieldValue("U")});\n`;
+  Blockly.JavaScript.forBlock["rack_set_jacku"] = b => `RACK_API.setJackU(${b.getFieldValue("JU")});\n`;
+  Blockly.JavaScript.forBlock["rack_clear"] = () => `RACK_API.clear();\n`;
+  Blockly.JavaScript.forBlock["rack_free_u"] = () => ["RACK_API.freeU()", Blockly.JavaScript.ORDER_ATOMIC];
+
+  const div = $("blocklyDiv");
+  const ws = new Blockly.Workspace();
+  Blockly.inject(div, {
+    toolbox: {
+      kind: "categoryToolbox",
+      contents: [
+        { kind: "category", name: "Rack", colour: "230", contents: [
+          { kind: "block", blockxml: '<block type="rack_add_device"><field name="DEV">ucgfiber</field></block>' },
+          { kind: "block", blockxml: '<block type="rack_set_rack"></block>' },
+          { kind: "block", blockxml: '<block type="rack_set_jacku"></block>' },
+          { kind: "block", blockxml: '<block type="rack_clear"></block>' }
+        ]},
+        { kind: "category", name: "Logic", colour: "210", contents: [
+          { kind: "block", blockxml: '<block type="controls_if"></block>' },
+          { kind: "block", blockxml: '<block type="logic_compare"></block>' },
+          { kind: "block", blockxml: '<block type="rack_free_u"></block>' }
+        ]},
+        { kind: "category", name: "Loops", colour: "120", contents: [
+          { kind: "block", blockxml: '<block type="controls_repeat_ext"></block>' }
+        ]}
+      ]
+    },
+    theme: "dark",
+    grid: { spacing: 24, length: 3, colour: "#232d42", snap: true }
+  });
+
+  const savedWs = localStorage.getItem("rack-blockly");
+  if (savedWs) { try { Blockly.serialization.workspaces.load(JSON.parse(savedWs), ws); } catch (e) {} }
+
+  const persist = () => { try { localStorage.setItem("rack-blockly", JSON.stringify(Blockly.serialization.workspaces.save(ws))); } catch (e) {} };
+  const persistLater = () => { clearTimeout(persistLater._t); persistLater._t = setTimeout(persist, 300); };
+  ws.addChangeListener(persistLater);
+
+  $("runBlocks").addEventListener("click", () => {
+    const status = $("runStatus");
+    try {
+      Blockly.JavaScript.addReservedWords("RACK_API");
+      const code = Blockly.JavaScript.workspaceToCode(ws);
+      const api = {
+        addDevice: (key, jack) => {
+          const d = findDevice(key);
+          if (!d) throw new Error("unknown device: " + key);
+          addItem(d);
+          if (state.items.length) {
+            const last = state.items[state.items.length - 1];
+            last.jack = !!jack;
+          }
+        },
+        setRack: u => { state.rackSize = Math.max(4, Math.min(12, u)); },
+        setJackU: ju => { state.jackU = Math.max(0, Math.min(2, ju)); },
+        clear: () => { state.items = []; },
+        freeU: () => {
+          const used = state.items.reduce((a, it) => a + itemTotal(it), 0);
+          return state.rackSize - used;
+        }
+      };
+      state.items = [];
+      new Function("RACK_API", code)(api);
+      rebuild();
+      status.textContent = "✅ Program ran";
+      status.style.color = "var(--ok)";
+    } catch (err) {
+      rebuild();
+      status.textContent = "⚠ " + err.message;
+      status.style.color = "var(--bad)";
+    }
+  });
+
+  $("clearBlocks").addEventListener("click", () => {
+    ws.clear();
+    persist();
+    $("runStatus").textContent = "";
+  });
+}
 
 rebuild();
 </script>

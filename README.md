@@ -118,7 +118,28 @@ The first time Peter adds a thing, the calculator says: *"Here is the bracket fo
 
 ---
 
-## Page 9: For Grown-Ups Who Read to the End
+## Page 9: The Magic Bricks
+
+*Picture: Peter snapping together colourful bricks. Each brick is an instruction.*
+
+Peter has found **magic bricks**. They are called Blockly bricks.
+
+Peter snaps bricks together like this: *set rack to twelve U. Add two NUCs. Add the gateway, with its jack panel. Add the big TerraMaster.*
+
+Then Peter presses **Run**. The calculator does everything the bricks say, all at once. The rack fills up by itself!
+
+There are special bricks too:
+* A **repeat** brick, for doing something lots of times
+* an **if** brick, which only does a thing **if** there is room
+* a **free U** brick, which knows how much room is left
+
+The bricks stay saved, so Peter can change one and press Run again. Jane says it is like teaching the calculator to build the rack itself.
+
+*(If the magic bricks cannot be found — the internet is asleep — the rest of the calculator still works.)*
+
+---
+
+## Page 10: For Grown-Ups Who Read to the End
 
 The calculator is one file called `index.html`. It has no moving parts and needs no installing.
 
