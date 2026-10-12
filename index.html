@@ -443,7 +443,8 @@ function showStlOffer(dev) {
   slot.innerHTML = `
     <div class="toast">
       <h3>\ud83e\udde9 3D-print mount available</h3>
-      <p><b>${dev.name}</b> (${dev.u}U) has a 10" rack-mount STL.
+      <p><b>${dev.name}</b> (${dev.u}U) has a 10" rack-mount STL by <b>${dev.stl.label.split(" \u2014 ")[0]}</b>.<br>
+      <span style="font-size:11px">${dev.stl.label}</span>
       ${dev.note ? "<br><span class='note'>\u26a0 " + dev.note + "</span>" : ""}</p>
       <a class="btn" href="${dev.stl.url}" target="_blank" rel="noopener">Download STL \u2197</a>
       <button class="dismiss" id="toastDismiss">Close</button>
@@ -574,7 +575,7 @@ function rebuild() {
       </div></td>
       <td><label class="switch"><input type="checkbox" data-a="jack" data-i="${i}" ${it.jack ? "checked" : ""}><span class="slider"></span></label></td>
       <td class="totu">${itemTotal(it)}U</td>
-      <td>${it.stl ? `<a class="stllink" href="${it.stl.url}" target="_blank" rel="noopener" title="${it.stl.label}">\u2b07</a>` : "\u2014"}</td>
+      <td>${it.stl ? `<a class="stllink" href="${it.stl.url}" target="_blank" rel="noopener" title="${it.stl.label}" style="width:auto;padding:0 8px;font-size:11px;">\u2b07 ${it.stl.label.split(" \u2014 ")[0]}</a>` : "\u2014"}</td>
       <td><button class="del" data-a="del" data-i="${i}">\u2715</button></td>
     </tr>`).join("")
     : `<tr><td colspan="9" style="color:var(--muted);text-align:center;padding:20px">Add kit from the catalogue above \u2191</td></tr>`;
