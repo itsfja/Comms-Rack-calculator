@@ -301,7 +301,7 @@ const GENERIC = [
   { key: "nvr", name: "NVR / DVR", u: 2, icon: "\ud83d\udc9a", ports: null, stl: null, img: null, note: null },
   { key: "ups", name: "UPS (1U)", u: 1, icon: "\ud83d\udd0b", ports: null, stl: null, img: null, note: null },
   { key: "pdu", name: "Rack PDU", u: 1, icon: "\ud83d\udd0c", ports: null, stl: null, img: null, note: null },
-  { key: "shelf", name: "Shelf (passive)", u: 1, icon: "\ud83d\uddc4\ufe0f", ports: null, stl: null, img: null, note: null },
+  { key: "shelf", name: "Shelf (passive, 0U)", u: 0, icon: "\ud83d\uddc4\ufe0f", ports: null, stl: null, img: null, note: null },
   { key: "fan", name: "Fan tray", u: 1, icon: "\ud83c\udf00", ports: null, stl: null, img: null, note: null }
 ];
 
@@ -325,6 +325,7 @@ function slotLabel(i, size) {
 }
 
 function itemTotal(it) {
+  if (it.u === 0) return 0;
   const jack = it.jack && state.jackU > 0 ? state.jackU : 0;
   return (it.u + jack) * it.qty;
 }
@@ -381,6 +382,7 @@ function rebuild() {
   };
   for (const r of rows) {
     if (pos >= size) break;
+    if (r.u === 0) continue;
     render(r.name, r.icon, r.tag, r.color, false, r.img);
     for (let j = 1; j < r.u && pos < size; j++) render("", "", "", r.color, false, null);
     for (let j = 0; j < r.jackAfter && pos < size; j++) render("", "", state.jackU + "U", "#64748b", true, null);
