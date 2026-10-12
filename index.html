@@ -731,8 +731,9 @@ function buildExampleBlocks(ex) {
   const ws = window._rackWs;
   ws.clear();
   let prev = null;
+  const textToDom = (Blockly.utils && Blockly.utils.xml && Blockly.utils.xml.textToDom) || Blockly.Xml.textToDom;
   const mk = (xml) => {
-    const b = Blockly.Xml.textToDom(xml);
+    const b = textToDom(xml);
     const block = Blockly.Xml.domToBlock(b, ws);
     if (prev) prev.nextConnection.connect(block.previousConnection);
     prev = block;
