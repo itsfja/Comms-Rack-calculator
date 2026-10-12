@@ -135,7 +135,11 @@
 
   .blockly-wrap { margin-top: 18px; }
   .blockly-wrap h2 small { color: var(--muted); font-weight: 400; }
-  #blocklyDiv { width: 100%; height: 320px; background: #0d1424; border: 1px solid var(--line); border-radius: 10px; }
+  .blockly-canvas { position: relative; }
+  #blocklyDiv { width: 100%; height: 420px; background: #0d1424; border: 1px solid var(--line); border-radius: 10px; }
+  .zoom { position: absolute; right: 12px; bottom: 12px; display: flex; gap: 6px; z-index: 5; }
+  .zoom button { background: var(--panel2); border: 1px solid var(--line); color: var(--text); border-radius: 6px; min-width: 32px; padding: 5px 9px; font-weight: 700; cursor: pointer; font-size: 13px; }
+  .zoom button:hover { border-color: var(--accent); }
   .blockly-btns { display: flex; gap: 8px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
   .runbtn { background: var(--ok); color: #05261a; font-weight: 700; border: none; padding: 8px 18px; border-radius: 8px; font-size: 13px; cursor: pointer; }
   .runbtn:hover { filter: brightness(1.1); }
@@ -217,7 +221,14 @@
 
     <div class="blockly-wrap" id="blocklySection" style="display:none">
       <h2> Blockly rules <small>— compose a build program, press Run</small></h2>
-      <div id="blocklyDiv"></div>
+      <div class="blockly-canvas">
+        <div id="blocklyDiv"></div>
+        <div class="zoom">
+          <button id="zIn" title="Zoom in">＋</button>
+          <button id="zOut" title="Zoom out">−</button>
+          <button id="zFit" title="Zoom to fit">⛶</button>
+        </div>
+      </div>
       <div class="blockly-btns">
         <button class="runbtn" id="runBlocks">▶ Run</button>
         <button class="ghost" id="clearBlocks">🗑 Clear program</button>
@@ -587,8 +598,7 @@ function initBlockly() {
   Blockly.JavaScript.forBlock["rack_free_u"] = () => ["RACK_API.freeU()", Blockly.JavaScript.ORDER_ATOMIC];
 
   const div = $("blocklyDiv");
-  const ws = new Blockly.Workspace();
-  Blockly.inject(div, {
+  const ws = Blockly.inject(div, {
     toolbox: {
       kind: "categoryToolbox",
       contents: [
@@ -608,12 +618,21 @@ function initBlockly() {
         ]}
       ]
     },
+    renderer: "zelos",
     theme: "dark",
-    grid: { spacing: 24, length: 3, colour: "#232d42", snap: true }
+    grid: { spacing: 28, length: 2, colour: "#232d42", snap: true },
+    zoom: { controls: false, wheel: true, startScale: 0.8, maxScale: 2, minScale: 0.35 },
+    trashcan: false, sounds: false,
+    move: { scrollbars: true, drag: true, wheel: false }
   });
 
   const savedWs = localStorage.getItem("rack-blockly");
   if (savedWs) { try { Blockly.serialization.workspaces.load(JSON.parse(savedWs), ws); } catch (e) {} }
+  try { ws.zoomToFit(); if (ws.getScale() > 0.9) ws.setScale(0.9); } catch (e) {}
+
+  $("zIn").addEventListener("click", () => ws.zoomCenter(1));
+  $("zOut").addEventListener("click", () => ws.zoomCenter(-1));
+  $("zFit").addEventListener("click", () => { try { ws.zoomToFit(); } catch (e) {} });
 
   const persist = () => { try { localStorage.setItem("rack-blockly", JSON.stringify(Blockly.serialization.workspaces.save(ws))); } catch (e) {} };
   const persistLater = () => { clearTimeout(persistLater._t); persistLater._t = setTimeout(persist, 300); };
@@ -645,6 +664,7 @@ function initBlockly() {
       state.items = [];
       new Function("RACK_API", code)(api);
       rebuild();
+      try { ws.zoomToFit(); } catch (e) {}
       status.textContent = "✅ Program ran";
       status.style.color = "var(--ok)";
     } catch (err) {
