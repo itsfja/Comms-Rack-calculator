@@ -209,9 +209,9 @@
         <select id="rackSize">
           <option value="4">4U wall box</option>
           <option value="6">6U</option>
-          <option value="9" selected>9U</option>
+          <option value="9">9U</option>
           <option value="10">10U</option>
-          <option value="12">12U</option>
+          <option value="12" selected>12U</option>
         </select>
       </div>
       <div>
@@ -371,7 +371,7 @@ const GENERIC = [
   { key: "fan", name: "Fan tray", u: 1, icon: "\ud83c\udf00", cat: "power", ports: null, stl: null, img: null, note: null }
 ];
 
-let state = { rackSize: 9, jackU: 1, spacerU: 0, numScheme: "b0", items: [], downloaded: [] };
+let state = { rackSize: 12, jackU: 1, spacerU: 0, numScheme: "b0", items: [], downloaded: [] };
 try {
   const s = JSON.parse(localStorage.getItem("rack-calc") || "null");
   if (s && Array.isArray(s.items)) state = Object.assign(state, s);
@@ -657,7 +657,7 @@ function initBlockly() {
     {
       type: "rack_set_rack",
       message0: "set rack height %1 U",
-      args0: [{ type: "field_number", name: "U", value: 9, min: 4, max: 12, precision: 1 }],
+      args0: [{ type: "field_number", name: "U", value: 12, min: 4, max: 12, precision: 1 }],
       previousStatement: null, nextStatement: null,
       colour: 160, tooltip: "Set the rack size", helpUrl: ""
     },
