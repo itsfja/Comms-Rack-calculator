@@ -87,7 +87,38 @@ The calculator **remembers** your plan in the browser, so it is still there when
 
 ---
 
-## Page 7: For Grown-Ups Who Read to the End
+## Page 7: Peter's Real Kit
+
+*Picture: Peter's actual machines lined up on the table. Each has a label with its holes.*
+
+Peter has put his **real things** in the calculator. They are:
+
+* Two **Intel NUCs** (2U each)
+* A **Raspberry Pi 4**
+* A **UniFi Cloud Gateway Fiber**, which has very fast holes
+* Two **UniFi Flex Minis** and two **Flex Mini 2.5Gs**
+* A **MikroTik 10G switch**
+* A big **TerraMaster NAS** called F4-425 Pro
+
+Each thing shows its **holes** — how many plugs it has, and how fast they go. The calculator counts them all up. Peter's kit is **13U**. Uh oh. Peter needs a bigger rack.
+
+The TerraMaster has **no printed mount**. Nobody has made one yet. It must sit on a **shelf**, like a fat cat on a ledge.
+
+---
+
+## Page 8: The Plastic Brackets
+
+*Picture: a 3D printer printing a bracket. The ladybird wears tiny safety goggles.*
+
+Most of Peter's things need a **bracket** to live in the rack. A bracket is a piece of plastic with holes that screws the thing in place.
+
+Kind people on the internet make brackets and share them for free. They are called **STL files**.
+
+The first time Peter adds a thing, the calculator says: *"Here is the bracket for this one."* Peter can click and get the file. It only asks once per thing. It never nags.
+
+---
+
+## Page 9: For Grown-Ups Who Read to the End
 
 The calculator is one file called `index.html`. It has no moving parts and needs no installing.
 

@@ -9,7 +9,6 @@
     --bg: #0b0f17;
     --panel: #121826;
     --panel2: #1a2234;
-    --edge: #2a3answer;
     --line: #232d42;
     --text: #e6edf7;
     --muted: #8a96ab;
@@ -33,7 +32,7 @@
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
   header p { color: var(--muted); font-size: 13px; margin-top: 4px; }
-  .wrap { display: grid; grid-template-columns: 1fr 380px; gap: 20px; padding: 16px 32px 40px; }
+  .wrap { display: grid; grid-template-columns: 1fr 420px; gap: 20px; padding: 16px 32px 40px; }
   @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
 
   .card {
@@ -54,14 +53,6 @@
   input[type=number] { width: 80px; }
   input[type=text] { width: 160px; }
 
-  .catalog { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
-  .chip {
-    background: #16203a; border: 1px solid var(--line); color: var(--text);
-    padding: 7px 12px; border-radius: 999px; font-size: 12.5px; cursor: pointer;
-    transition: all .15s;
-  }
-  .chip:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(56,189,248,.2); }
-
   .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
   .stat {
     background: #0d1424; border: 1px solid var(--line); border-radius: 10px;
@@ -72,17 +63,21 @@
   .ok b { color: var(--ok); } .warn b { color: var(--warn); } .bad b { color: var(--bad); }
 
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { text-align: left; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; padding: 8px 8px; border-bottom: 1px solid var(--line); }
+  th { text-align: left; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; padding: 8px; border-bottom: 1px solid var(--line); }
   td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
   tr:last-child td { border-bottom: none; }
   .qtyctl { display: flex; align-items: center; gap: 6px; }
-  .qtyctl button, .del, .updown {
+  .qtyctl button, .del, .stllink {
     background: #16203a; border: 1px solid var(--line); color: var(--text);
     border-radius: 6px; width: 24px; height: 24px; cursor: pointer; font-size: 13px; line-height: 1;
+    display: inline-flex; align-items: center; justify-content: center; text-decoration: none;
   }
-  .qtyctl button:hover, .del:hover, .updown:hover { border-color: var(--accent); }
+  .qtyctl button:hover, .del:hover, .stllink:hover { border-color: var(--accent); }
   .del { color: var(--bad); width: 28px; }
+  .stllink { color: var(--accent); width: 28px; }
   .totu { font-weight: 700; color: var(--accent); text-align: center; }
+  .ports { font-size: 10.5px; color: var(--muted); line-height: 1.5; max-width: 150px; }
+  .note { font-size: 10px; color: var(--warn); }
 
   .switch { position: relative; display: inline-block; width: 34px; height: 18px; }
   .switch input { opacity: 0; width: 0; height: 0; }
@@ -106,8 +101,12 @@
     color: #fff; font-weight: 600; position: relative; overflow: hidden;
   }
   .dev-ru .num { width: 26px; opacity: .6; font-weight: 400; }
-  .dev-ru .name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .dev-ru .tag { font-size: 9px; background: rgba(0,0,0,.35); padding: 1px 6px; border-radius: 999px; font-weight: 500; }
+  .dev-ru .name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; z-index: 1; }
+  .dev-ru .tag { font-size: 9px; background: rgba(0,0,0,.35); padding: 1px 6px; border-radius: 999px; font-weight: 500; z-index: 1; }
+  .dev-ru .panel-img {
+    position: absolute; inset: 0; pointer-events: none;
+    background-repeat: no-repeat; background-position: right center; background-size: auto 100%;
+  }
   .dev-ru::after {
     content: ""; position: absolute; inset: 0; pointer-events: none;
     background: repeating-linear-gradient(45deg, rgba(255,255,255,.05) 0 6px, transparent 6px 12px);
@@ -123,6 +122,34 @@
   }
   .ghost:hover { color: var(--text); border-color: var(--accent); }
   .devicon { margin-right: 6px; }
+
+  .catalog { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .catalog-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin: 8px 0 6px; width: 100%; }
+  .chip {
+    background: #16203a; border: 1px solid var(--line); color: var(--text);
+    padding: 7px 12px; border-radius: 999px; font-size: 12.5px; cursor: pointer;
+    transition: all .15s;
+  }
+  .chip:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(56,189,248,.2); }
+  .chip .u-badge { color: var(--accent); font-weight: 700; margin-left: 4px; }
+
+  .toast {
+    position: fixed; right: 24px; bottom: 24px; max-width: 360px; z-index: 50;
+    background: linear-gradient(180deg, var(--panel2), var(--panel));
+    border: 1px solid var(--accent); border-radius: 12px; padding: 14px 16px;
+    box-shadow: 0 14px 40px rgba(0,0,0,.5);
+  }
+  .toast h3 { font-size: 13px; color: var(--accent); margin-bottom: 6px; }
+  .toast p { font-size: 12px; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
+  .toast p b { color: var(--text); }
+  .toast a.btn {
+    display: inline-block; background: var(--accent); color: #06121f; font-weight: 700;
+    font-size: 12px; padding: 8px 14px; border-radius: 8px; text-decoration: none; margin-right: 8px;
+  }
+  .toast button.dismiss {
+    background: transparent; border: 1px solid var(--line); color: var(--muted);
+    font-size: 11px; padding: 8px 10px; border-radius: 8px; cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -187,7 +214,7 @@
     <div style="overflow-x:auto">
       <table>
         <thead>
-          <tr><th>#</th><th>Device</th><th>U</th><th>Qty</th><th>Jack</th><th>Tot U</th><th></th></tr>
+          <tr><th>#</th><th>Device</th><th>Ports</th><th>U</th><th>Qty</th><th>Jack</th><th>Tot U</th><th>STL</th><th></th></tr>
         </thead>
         <tbody id="buildTable"></tbody>
       </table>
@@ -211,32 +238,78 @@
   </div>
 </div>
 
+<div id="toastSlot"></div>
+
 <script>
-const CATALOG = [
-  { name: "1U Switch (8–12p)", u: 1, icon: "🔀" },
-  { name: "1U Switch (24p)", u: 1, icon: "🔀" },
-  { name: "Router / Firewall", u: 1, icon: "🛡️" },
-  { name: "Patch panel (24p)", u: 1, icon: "🪛" },
-  { name: "NVR / DVR", u: 2, icon: "🎥" },
-  { name: "UPS (1U)", u: 1, icon: "🔋" },
-  { name: "Rack PDU", u: 1, icon: "🔌" },
-  { name: "Media converter", u: 1, icon: "📡" },
-  { name: "Shelf (passive)", u: 1, icon: "🗄️" },
-  { name: "Fan tray", u: 1, icon: "🌀" },
+const KIT = [
+  {
+    key: "nuc10", name: "Intel NUC (10th gen)", u: 2, icon: "\ud83d\udda5\ufe0f",
+    ports: ["2\u00d7 USB-A 3.2 Gen2", "1\u00d7 USB-C 3.2 Gen2", "1\u00d7 HDMI 2.0a", "1\u00d7 2.5GbE", "1\u00d7 3.5mm audio"],
+    stl: { label: "Flow \u2014 10th Gen Intel NUC 10\" rackmount kit", url: "https://www.printables.com/model/450104-10th-gen-intel-nuc-10-inch-rackmount" },
+    img: "https://media.printables.com/media/prints/450104/images/3708079_a11d82e9-d757-4062-8a57-3cf75735bef0/thumbs/cover/800x800/png/nuc10fnh-rack.png",
+    note: "1.5U kit \u2014 occupies 2U of rail spacing"
+  },
+  {
+    key: "pi4", name: "Raspberry Pi 4", u: 1, icon: "\ud83e\udd67",
+    ports: ["2\u00d7 USB 3.0", "2\u00d7 USB 2.0", "1\u00d7 GbE", "2\u00d7 micro-HDMI", "USB-C power"],
+    stl: { label: "Maur\u00edcio Pessoa \u2014 Raspberry Pi 4B 10\" rack mount (holds 2)", url: "https://www.printables.com/model/932007-raspberry-pi-4b-10-inch-rack-mount" },
+    img: "https://media.printables.com/media/prints/932007/images/7104080_945003a9-e929-41af-9d84-b621a09fadd9_4996c33e-6d58-4896-941c-54125e7fa0c5/thumbs/cover/800x800/jpg/closeup.jpg",
+    note: null
+  },
+  {
+    key: "ucgfiber", name: "UniFi Cloud Gateway Fiber", u: 1, icon: "\ud83d\udee1\ufe0f",
+    ports: ["1\u00d7 10G RJ45 WAN", "2\u00d7 10G SFP+", "4\u00d7 2.5GbE LAN (1\u00d7 PoE+)", "0.96\" display"],
+    stl: { label: "Maur\u00edcio Pessoa \u2014 UCG-Fiber 10\" rack mount", url: "https://www.printables.com/model/1235928-unifi-ucg-fiber-10-inch-rack-mount" },
+    img: "https://media.printables.com/media/prints/579878c3-d274-455c-a12a-c072e4d851d2/images/10172029_32754a7c-892d-4f0d-a3f0-3a714df42e42_0bfc5be2-1158-4e39-b9c2-989c61b2625f/thumbs/cover/800x800/png/cover01.png",
+    note: null
+  },
+  {
+    key: "flexmini", name: "UniFi Flex Mini", u: 1, icon: "\ud83d\udd0c",
+    ports: ["4\u00d7 1GbE (1\u00d7 PoE out)", "USB-C power"],
+    stl: { label: "Maur\u00edcio Pessoa \u2014 USW-Flex-Mini 10\" rack mount", url: "https://www.printables.com/model/1017871-ubiquiti-unifi-usw-flex-mini-10-inch-rack-mount" },
+    img: "https://media.printables.com/media/prints/1017871/images/7732051_d3942643-8af1-47be-96dc-12d3dd351d94_43aff8f4-1cef-4ad9-af4a-96efd0d06cc9/thumbs/cover/800x800/png/modelsingle.png",
+    note: "Mount holds 2 per 1U \u2014 stack your second Flex Mini"
+  },
+  {
+    key: "flexmini25", name: "UniFi Flex Mini 2.5G", u: 1, icon: "\ud83d\udd0c",
+    ports: ["4\u00d7 2.5GbE", "1\u00d7 2.5G SFP", "USB-C power"],
+    stl: { label: "Maur\u00edcio Pessoa \u2014 USW-Flex-Mini 2.5G 10\" rack mount", url: "https://www.printables.com/model/1025246-ubiquiti-unifi-usw-flex-mini-25g-5-10-inch-rack-mo" },
+    img: "https://media.printables.com/media/prints/1025246/images/7785020_c70dfefa-d1ec-4771-a9c5-aa0c8d7cce4e_108477ff-3bee-4f23-a1c2-b433d87f7979/thumbs/cover/800x800/png/model.png",
+    note: "Mount holds 2 per 1U \u2014 stack your second Flex Mini 2.5G"
+  },
+  {
+    key: "crs305", name: "MikroTik CRS305 (10G switch)", u: 1, icon: "\ud83d\udd00",
+    ports: ["4\u00d7 10G SFP+", "1\u00d7 GbE", "DC power"],
+    stl: { label: "Mauker \u2014 CRS305-1G-4S+IN 10\" rack mount", url: "https://www.printables.com/model/1343353-mikrotik-crs305-1g-4sin-10-inch-rack-mount" },
+    img: "https://makerworld.bblmw.com/makerworld/model/US3657ace2fd1fcc/design/2025-07-01_076c568d685778.png",
+    note: null
+  },
+  {
+    key: "f4425pro", name: "TerraMaster F4-425 Pro", u: 2, icon: "\ud83d\udcbe",
+    ports: ["2\u00d7 5GbE", "3\u00d7 USB-A 10Gbps", "1\u00d7 USB-C 10Gbps", "1\u00d7 HDMI"],
+    stl: null,
+    img: "https://www.terra-master.com/cdn/shop/files/F4-425-Pro-02.jpg",
+    note: "No printed mount found \u2014 sits on a shelf, pokes out the back"
+  }
 ];
 
-let state = { rackSize: 9, jackU: 1, spacerU: 0, numScheme: "b0", items: [] };
+const GENERIC = [
+  { key: "sw8", name: "1U Switch (8\u201312p)", u: 1, icon: "\ud83d\udd00", ports: null, stl: null, img: null, note: null },
+  { key: "sw24", name: "1U Switch (24p)", u: 1, icon: "\ud83d\udd00", ports: null, stl: null, img: null, note: null },
+  { key: "rtr", name: "Router / Firewall", u: 1, icon: "\ud83d\udee1\ufe0f", ports: null, stl: null, img: null, note: null },
+  { key: "pp24", name: "Patch panel (24p)", u: 1, icon: "\ud83e\ude9b", ports: null, stl: null, img: null, note: null },
+  { key: "nvr", name: "NVR / DVR", u: 2, icon: "\ud83d\udc9a", ports: null, stl: null, img: null, note: null },
+  { key: "ups", name: "UPS (1U)", u: 1, icon: "\ud83d\udd0b", ports: null, stl: null, img: null, note: null },
+  { key: "pdu", name: "Rack PDU", u: 1, icon: "\ud83d\udd0c", ports: null, stl: null, img: null, note: null },
+  { key: "shelf", name: "Shelf (passive)", u: 1, icon: "\ud83d\uddc4\ufe0f", ports: null, stl: null, img: null, note: null },
+  { key: "fan", name: "Fan tray", u: 1, icon: "\ud83c\udf00", ports: null, stl: null, img: null, note: null }
+];
 
-// slot index 0 = bottom slot ... size-1 = top slot
-function slotLabel(i, size) {
-  const sc = state.numScheme;
-  if (sc === "b0") return "U" + i;
-  if (sc === "b1") return "U" + (i + 1);
-  return "U" + (size - i);
-}
+let state = { rackSize: 9, jackU: 1, spacerU: 0, numScheme: "b0", items: [], downloaded: [] };
 try {
   const s = JSON.parse(localStorage.getItem("rack-calc") || "null");
   if (s && Array.isArray(s.items)) state = Object.assign(state, s);
+  if (!Array.isArray(state.downloaded)) state.downloaded = [];
 } catch (e) {}
 
 const $ = id => document.getElementById(id);
@@ -244,9 +317,44 @@ const save = () => localStorage.setItem("rack-calc", JSON.stringify(state));
 
 const COLORS = ["#38bdf8","#818cf8","#34d399","#fbbf24","#f472b6","#fb923c","#a78bfa","#2dd4bf"];
 
+function slotLabel(i, size) {
+  const sc = state.numScheme;
+  if (sc === "b0") return "U" + i;
+  if (sc === "b1") return "U" + (i + 1);
+  return "U" + (size - i);
+}
+
 function itemTotal(it) {
   const jack = it.jack && state.jackU > 0 ? state.jackU : 0;
   return (it.u + jack) * it.qty;
+}
+
+function showStlOffer(dev) {
+  if (!dev.stl) return;
+  if (state.downloaded.includes(dev.key)) return;
+  state.downloaded.push(dev.key);
+  save();
+  const slot = $("toastSlot");
+  slot.innerHTML = `
+    <div class="toast">
+      <h3>\ud83e\udde9 3D-print mount available</h3>
+      <p><b>${dev.name}</b> (${dev.u}U) has a 10" rack-mount STL.
+      ${dev.note ? "<br><span class='note'>\u26a0 " + dev.note + "</span>" : ""}</p>
+      <a class="btn" href="${dev.stl.url}" target="_blank" rel="noopener">Download STL \u2197</a>
+      <button class="dismiss" id="toastDismiss">Close</button>
+    </div>`;
+  $("toastDismiss").addEventListener("click", () => { slot.innerHTML = ""; });
+}
+
+function addItem(dev) {
+  state.items.push({
+    key: dev.key, name: dev.name, u: dev.u, qty: 1,
+    jack: dev.key === "pp24",
+    color: COLORS[state.items.length % COLORS.length],
+    icon: dev.icon, ports: dev.ports, stl: dev.stl, img: dev.img, note: dev.note
+  });
+  rebuild();
+  showStlOffer(dev);
 }
 
 function rebuild() {
@@ -255,32 +363,36 @@ function rebuild() {
   const over = Math.max(0, used - state.rackSize);
   const size = state.rackSize;
 
-  let html = "";
   const rows = [];
   state.items.forEach(it => {
     for (let q = 0; q < it.qty; q++) {
-      rows.push({ name: it.name, u: it.u, tag: it.u + "U", color: it.color, jackAfter: it.jack && state.jackU > 0 ? state.jackU : 0, icon: it.icon });
+      rows.push({
+        name: it.name, u: it.u, tag: it.u + "U", color: it.color, icon: it.icon, img: it.img,
+        jackAfter: it.jack && state.jackU > 0 ? state.jackU : 0
+      });
     }
   });
+
   let pos = 0;
-  const render = (name, icon, tag, color, jack) => {
-    html = block(name, icon, tag, color, pos, jack) + html;
+  const out = [];
+  const render = (name, icon, tag, color, jack, img) => {
+    out.push(block(name, icon, tag, color, pos, jack, img));
     pos += 1;
   };
   for (const r of rows) {
     if (pos >= size) break;
-    render(r.name, r.icon, r.tag, r.color, false);
-    for (let j = 1; j < r.u && pos < size; j++) render("", "", "", r.color, false);
-    for (let j = 0; j < r.jackAfter && pos < size; j++) render("", "", state.jackU + "U", "", true);
+    render(r.name, r.icon, r.tag, r.color, false, r.img);
+    for (let j = 1; j < r.u && pos < size; j++) render("", "", "", r.color, false, null);
+    for (let j = 0; j < r.jackAfter && pos < size; j++) render("", "", state.jackU + "U", "#64748b", true, null);
   }
-  for (let s = 0; s < state.spacerU && pos < size; s++) render("Blank / ventilation", "\u25ab\ufe0f", "1U", "#3b4666", false);
-  for (let i = size - 1; i >= pos; i--) {
-    html = `<div class="ru empty-ru"><span class="num">${slotLabel(i, size)}</span><span class="fill"></span><span style="opacity:.35;font-size:9px">free</span></div>` + html;
+  for (let s = 0; s < state.spacerU && pos < size; s++) render("Blank / ventilation", "\u25ab\ufe0f", "1U", "#3b4666", false, null);
+  for (let i = pos; i < size; i++) {
+    out.push(`<div class="ru empty-ru"><span class="num">${slotLabel(i, size)}</span><span class="fill"></span><span style="opacity:.35;font-size:9px">free</span></div>`);
   }
   if (over > 0) {
-    html += `<div class="ru empty-ru" style="border-color:var(--bad)"><span class="num" style="color:var(--bad)">!</span><span class="fill" style="border-color:var(--bad)"></span><span style="color:var(--bad);font-size:10px">⚠ ${over}U over capacity</span></div>`;
+    out.push(`<div class="ru empty-ru" style="border-color:var(--bad)"><span class="num" style="color:var(--bad)">!</span><span class="fill" style="border-color:var(--bad)"></span><span style="color:var(--bad);font-size:10px">\u26a0 ${over}U over capacity</span></div>`);
   }
-  rack.innerHTML = html;
+  rack.innerHTML = out.join("");
 
   const pct = Math.round((used / size) * 100);
   $("stUsed").innerHTML = `<b>${used}U</b><span>Used</span>`;
@@ -293,25 +405,27 @@ function rebuild() {
   $("hint").innerHTML =
     `Total kit: <b>${used}U</b> in a <b>${size}U</b> 10" rack. ` +
     (over > 0
-      ? `⚠ You're <b>${over}U over</b> — remove kit, shrink jack panel U, or pick a taller rack.`
+      ? `\u26a0 You're <b>${over}U over</b> \u2014 remove kit, shrink jack panel U, or pick a taller rack.`
       : used === size
-        ? `✅ Perfect fit — rack is full.`
-        : `✅ Fits with <b>${size - used}U</b> to spare (or for growth).`);
+        ? `\u2705 Perfect fit \u2014 rack is full.`
+        : `\u2705 Fits with <b>${size - used}U</b> to spare (or for growth).`);
 
   const tb = $("buildTable");
   tb.innerHTML = state.items.length ? state.items.map((it, i) => `
     <tr>
       <td>${i + 1}</td>
-      <td>${it.icon || "📦"} ${it.name}</td>
+      <td>${it.icon || "\ud83d\udce6"} ${it.name}${it.note ? `<br><span class="note">\u26a0 ${it.note}</span>` : ""}</td>
+      <td>${it.ports ? `<div class="ports">${it.ports.join("<br>")}</div>` : "\u2014"}</td>
       <td style="text-align:center">${it.u}U${it.jack && state.jackU > 0 ? `+${state.jackU}` : ""}</td>
       <td><div class="qtyctl">
-        <button data-a="dec" data-i="${i}">−</button><span>${it.qty}</span><button data-a="inc" data-i="${i}">＋</button>
+        <button data-a="dec" data-i="${i}">\u2212</button><span>${it.qty}</span><button data-a="inc" data-i="${i}">\uff0b</button>
       </div></td>
       <td><label class="switch"><input type="checkbox" data-a="jack" data-i="${i}" ${it.jack ? "checked" : ""}><span class="slider"></span></label></td>
       <td class="totu">${itemTotal(it)}U</td>
-      <td><button class="del" data-a="del" data-i="${i}">✕</button></td>
+      <td>${it.stl ? `<a class="stllink" href="${it.stl.url}" target="_blank" rel="noopener" title="${it.stl.label}">\u2b07</a>` : "\u2014"}</td>
+      <td><button class="del" data-a="del" data-i="${i}">\u2715</button></td>
     </tr>`).join("")
-    : `<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:20px">Add kit from the catalogue above ↑</td></tr>`;
+    : `<tr><td colspan="9" style="color:var(--muted);text-align:center;padding:20px">Add kit from the catalogue above \u2191</td></tr>`;
 
   $("rackSize").value = state.rackSize;
   $("numScheme").value = state.numScheme;
@@ -320,23 +434,29 @@ function rebuild() {
   save();
 }
 
-function block(name, icon, tag, color, uNum, jack) {
+function block(name, icon, tag, color, uNum, jack, img) {
   const bg = jack ? "#475569" : `linear-gradient(180deg,${color},${color}cc)`;
   const label = jack ? "\ud83e\ude9b Jack / patch panel" : `<span class="devicon">${icon || "\ud83d\udce6"}</span>${name}`;
+  const imgEl = img
+    ? `<span class="panel-img" style="background-image:url('${img}')"></span>`
+    : "";
   return `<div class="ru dev-ru jack" style="background:${bg}">` +
+    imgEl +
     `<span class="num">${slotLabel(uNum, state.rackSize)}</span><span class="name">${label}</span>` +
     (tag ? `<span class="tag">${tag}</span>` : "") + `</div>`;
 }
 
-$("catalog").innerHTML = CATALOG.map((c, i) =>
-  `<button class="chip" data-cat="${i}">${c.icon} ${c.name}</button>`).join("");
+$("catalog").innerHTML =
+  `<span class="catalog-title">Your kit</span>` +
+  KIT.map((d, i) => `<button class="chip" data-kit="${i}">${d.icon} ${d.name}<span class="u-badge">${d.u}U</span></button>`).join("") +
+  `<span class="catalog-title">Generic</span>` +
+  GENERIC.map((d, i) => `<button class="chip" data-gen="${i}">${d.icon} ${d.name}</button>`).join("");
 
 $("catalog").addEventListener("click", e => {
-  const i = e.target.dataset && e.target.dataset.cat;
-  if (i === undefined) return;
-  const c = CATALOG[+i];
-  state.items.push({ name: c.name, u: c.u, qty: 1, jack: c.name.startsWith("Patch"), color: COLORS[state.items.length % COLORS.length], icon: c.icon });
-  rebuild();
+  const t = e.target.closest("button");
+  if (!t || !t.dataset) return;
+  if (t.dataset.kit !== undefined) addItem(KIT[+t.dataset.kit]);
+  else if (t.dataset.gen !== undefined) addItem(GENERIC[+t.dataset.gen]);
 });
 
 $("buildTable").addEventListener("click", e => {
@@ -346,7 +466,7 @@ $("buildTable").addEventListener("click", e => {
   if (a === "inc") state.items[i].qty++;
   if (a === "dec") { state.items[i].qty--; if (state.items[i].qty < 1) state.items.splice(i, 1); }
   if (a === "del") state.items.splice(i, 1);
-  if (state.items[i]) rebuild(); else rebuild();
+  rebuild();
 });
 
 $("buildTable").addEventListener("change", e => {
@@ -360,9 +480,8 @@ $("addCustom").addEventListener("click", () => {
   const name = $("cName").value.trim();
   const u = Math.max(1, Math.min(4, +$("cU").value || 1));
   if (!name) { $("cName").focus(); return; }
-  state.items.push({ name, u, qty: 1, jack: false, color: COLORS[state.items.length % COLORS.length], icon: "📦" });
+  addItem({ key: "custom-" + name, name, u, icon: "\ud83d\udce6", ports: null, stl: null, img: null, note: null });
   $("cName").value = "";
-  rebuild();
 });
 
 $("rackSize").addEventListener("change", e => { state.rackSize = +e.target.value; rebuild(); });
