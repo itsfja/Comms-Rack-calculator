@@ -217,7 +217,7 @@
 </head>
 <body>
 <header>
-  <h1>🎛️ 10" Rack U Calculator <span class="ver">v0.9.0</span></h1>
+  <h1>🎛️ 10" Rack U Calculator <span class="ver">v0.10.0</span></h1>
   <p>Plan your 10-inch rack: pick kit, allow a patch/jack panel per device, and watch the elevation fill live.
      <span class="ex-pick">Example:
        <select id="examplePick" title="Pick a community example build — loads when you press Load">
@@ -328,10 +328,19 @@
         <input type="number" id="cU" min="1" max="4" step="1" value="1">
       </div>
       <div>
+        <label>STL link (optional)</label>
+        <input type="text" id="cStl" placeholder="https://www.printables.com/…" style="width:200px">
+      </div>
+      <div>
+        <label>STL creator (optional)</label>
+        <input type="text" id="cCreator" placeholder="who made the mount" style="width:140px">
+      </div>
+      <div>
         <label>&nbsp;</label>
         <button class="chip" id="addCustom">＋ Add to rack</button>
       </div>
     </div>
+    <p class="hint">No mount yet? Add the device and use its <b>🔍 search</b> to look for a 10" rack mount STL on Printables, MakerWorld or STLFinder.</p>
   </div>
 </div>
 
@@ -577,7 +586,9 @@ function rebuild() {
       </div></td>
       <td><label class="switch"><input type="checkbox" data-a="jack" data-i="${i}" ${it.jack ? "checked" : ""}><span class="slider"></span></label></td>
       <td class="totu">${itemTotal(it)}U</td>
-      <td>${it.stl ? `<a class="stllink" href="${it.stl.url}" target="_blank" rel="noopener" title="${it.stl.label}" style="width:auto;padding:0 8px;font-size:11px;">\u2b07 ${it.stl.label.split(" \u2014 ")[0]}</a>` : "\u2014"}</td>
+      <td>${it.stl
+        ? `<a class="stllink" href="${it.stl.url}" target="_blank" rel="noopener" title="${it.stl.label}" style="width:auto;padding:0 8px;font-size:11px;">\u2b07 ${it.stl.label.split(" \u2014 ")[0]}</a>`
+        : `<a class="stllink" href="#" title="Search for a 10" rack mount STL" style="width:auto;padding:0 8px;font-size:11px;" data-search="${encodeURIComponent(it.name)}">🔍 search</a>`}</td>
       <td><button class="del" data-a="del" data-i="${i}">\u2715</button></td>
     </tr>`).join("")
     : `<tr><td colspan="9" style="color:var(--muted);text-align:center;padding:20px">Add kit from the catalogue above \u2191</td></tr>`;
@@ -624,6 +635,17 @@ $("buildTable").addEventListener("click", e => {
   rebuild();
 });
 
+$("buildTable").addEventListener("click", e => {
+  const a = e.target.closest("a[data-search]");
+  if (!a) return;
+  e.preventDefault();
+  const q = decodeURIComponent(a.dataset.search) + " 10 inch rack mount";
+  const enc = encodeURIComponent(q);
+  window.open("https://www.printables.com/search/all?q=" + enc, "_blank", "noopener");
+  window.open("https://makerworld.com/en/search/models?keyword=" + enc, "_blank", "noopener");
+  window.open("https://www.stlfinder.com/search?searchTerm=" + enc, "_blank", "noopener");
+});
+
 $("buildTable").addEventListener("change", e => {
   if (e.target.dataset.a === "jack") {
     state.items[+e.target.dataset.i].jack = e.target.checked;
@@ -635,8 +657,14 @@ $("addCustom").addEventListener("click", () => {
   const name = $("cName").value.trim();
   const u = Math.max(1, Math.min(4, +$("cU").value || 1));
   if (!name) { $("cName").focus(); return; }
-  addItem({ key: "custom-" + name, name, u, icon: "\ud83d\udce6", ports: null, stl: null, img: null, note: null });
-  $("cName").value = "";
+  const url = $("cStl").value.trim();
+  const creator = $("cCreator").value.trim();
+  addItem({
+    key: "custom-" + name, name, u, icon: "\ud83d\udce6", cat: "comms",
+    ports: null, img: null, note: null,
+    stl: url ? { label: (creator || "unknown") + " \u2014 " + name + " mount", url } : null
+  });
+  $("cName").value = ""; $("cStl").value = ""; $("cCreator").value = "";
 });
 
 $("rackSize").addEventListener("change", e => { state.rackSize = +e.target.value; rebuild(); });
