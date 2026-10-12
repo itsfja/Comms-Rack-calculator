@@ -220,9 +220,10 @@
   <h1>🎛️ 10" Rack U Calculator <span class="ver">v0.8.0</span></h1>
   <p>Plan your 10-inch rack: pick kit, allow a patch/jack panel per device, and watch the elevation fill live.
      <span class="ex-pick">Example:
-       <select id="examplePick" title="Load a community example build">
+       <select id="examplePick" title="Pick a community example build — loads when you press Load">
          <option value="">choose a build…</option>
        </select>
+       <button class="chip" id="exampleLoad" title="Load the chosen example into the calculator and the block workspace">Load</button>
      </span>
   </p>
 </header>
@@ -717,11 +718,35 @@ function loadExample(ex) {
     o.textContent = `${ex.name} — ${creator}`;
     sel.appendChild(o);
   });
-  sel.addEventListener("change", () => {
+  $("exampleLoad").addEventListener("click", () => {
     const ex = EXAMPLES.find(x => x.key === sel.value);
-    if (ex) loadExample(ex);
+    if (!ex) return;
+    loadExample(ex);
+    buildExampleBlocks(ex);
   });
 })();
+
+function buildExampleBlocks(ex) {
+  if (typeof Blockly === "undefined" || !window._rackWs) return;
+  const ws = window._rackWs;
+  ws.clear();
+  let prev = null;
+  const mk = (xml) => {
+    const b = Blockly.Xml.textToDom(xml);
+    const block = Blockly.Xml.domToBlock(b, ws);
+    if (prev) prev.nextConnection.connect(block.previousConnection);
+    prev = block;
+    return block;
+  };
+  mk(`<block type="rack_set_rack"><field name="U">${ex.rack}</field></block>`);
+  ex.items.forEach(([key, qty, jack]) => {
+    for (let i = 0; i < qty; i++) {
+      mk(`<block type="rack_add_device"><field name="DEV">${key}</field><field name="JACK">${jack ? "TRUE" : "FALSE"}</field></block>`);
+    }
+  });
+  try { ws.zoomToFit(); if (ws.getScale() > 0.9) ws.setScale(0.9); } catch (e) {}
+  try { localStorage.setItem("rack-blockly", JSON.stringify(Blockly.serialization.workspaces.save(ws))); } catch (e) {}
+}
 
 /* ---------- Google Blockly rules engine ---------- */
 (function loadBlockly() {
@@ -806,6 +831,7 @@ function initBlockly() {
 
   const div = $("blocklyDiv");
   const ws = Blockly.inject(div, {
+    _note: "window._rackWs set below",
     toolbox: {
       kind: "categoryToolbox",
       contents: [
@@ -842,6 +868,7 @@ function initBlockly() {
     move: { scrollbars: true, drag: true, wheel: false }
   });
 
+  window._rackWs = ws;
   const savedWs = localStorage.getItem("rack-blockly");
   if (savedWs) { try { Blockly.serialization.workspaces.load(JSON.parse(savedWs), ws); } catch (e) {} }
   try { ws.zoomToFit(); if (ws.getScale() > 0.9) ws.setScale(0.9); } catch (e) {}
