@@ -171,6 +171,9 @@
   .zoom button { background: var(--panel2); border: 1px solid var(--line); color: var(--text); border-radius: 6px; min-width: 32px; padding: 5px 9px; font-weight: 700; cursor: pointer; font-size: 13px; }
   .zoom button:hover { border-color: var(--accent); }
   .blockly-btns { display: flex; gap: 8px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
+  .blockly-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .blockly-head h2 { margin-bottom: 0; flex: 1; }
+  .blockly-head .blockly-btns { margin-top: 0; }
   .runbtn { background: var(--accent); color: var(--accent-ink); font: inherit; font-weight: 700; border: 1px solid var(--accent); padding: 8px 18px; border-radius: 8px; font-size: 14px; cursor: pointer; }
   .runbtn:hover { filter: brightness(1.08); }
   .runbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -206,7 +209,7 @@
 </head>
 <body>
 <header>
-  <h1>🎛️ 10" Rack U Calculator <span class="ver">v0.6.1</span></h1>
+  <h1>🎛️ 10" Rack U Calculator <span class="ver">v0.7.0</span></h1>
   <p>Plan your 10-inch rack: pick kit, allow a patch/jack panel per device, and watch the elevation fill live.</p>
 </header>
 
@@ -261,7 +264,14 @@
     </div>
 
     <div class="blockly-wrap" id="blocklySection" style="display:none">
-      <h2> Blockly rules <small>— compose a build program, press Run</small></h2>
+      <div class="blockly-head">
+        <h2>Build yer own Comms rack</h2>
+        <div class="blockly-btns">
+          <button class="runbtn" id="runBlocks">▶ Run</button>
+          <button class="ghost" id="clearBlocks">🗑 Clear program</button>
+          <span id="runStatus"></span>
+        </div>
+      </div>
       <div class="blockly-canvas">
         <div id="blocklyDiv"></div>
         <div class="zoom">
@@ -269,11 +279,6 @@
           <button id="zOut" title="Zoom out">−</button>
           <button id="zFit" title="Zoom to fit">⛶</button>
         </div>
-      </div>
-      <div class="blockly-btns">
-        <button class="runbtn" id="runBlocks">▶ Run</button>
-        <button class="ghost" id="clearBlocks">🗑 Clear program</button>
-        <span id="runStatus"></span>
       </div>
       <p class="hint">Tip: an <b>add device</b> block appends one device. Use a <b>repeat</b> block to add several. Use <b>if</b> with <b>free U</b> to add conditionally. Running clears the rack first, then applies your blocks.</p>
     </div>
