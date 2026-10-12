@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10" Rack U Calculator</title>
+<style>
+  :root {
+    --bg: #0b0f17;
+    --panel: #121826;
+    --panel2: #1a2234;
+    --edge: #2a3answer;
+    --line: #232d42;
+    --text: #e6edf7;
+    --muted: #8a96ab;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --ok: #34d399;
+    --warn: #fbbf24;
+    --bad: #f87171;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: radial-gradient(1200px 600px at 70% -10%, #16233c 0%, var(--bg) 55%);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header { padding: 28px 32px 8px; }
+  header h1 {
+    font-size: 26px; font-weight: 700; letter-spacing: .3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  header p { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .wrap { display: grid; grid-template-columns: 1fr 380px; gap: 20px; padding: 16px 32px 40px; }
+  @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
+
+  .card {
+    background: linear-gradient(180deg, var(--panel2), var(--panel));
+    border: 1px solid var(--line); border-radius: 14px;
+    padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  }
+  .card h2 { font-size: 15px; margin-bottom: 12px; color: var(--accent); }
+  .card h2 small { color: var(--muted); font-weight: 400; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 14px; }
+  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+  select, input[type=number], input[type=text] {
+    background: #0d1424; border: 1px solid var(--line); color: var(--text);
+    border-radius: 8px; padding: 8px 10px; font-size: 13px; outline: none;
+  }
+  select:focus, input:focus { border-color: var(--accent); }
+  input[type=number] { width: 80px; }
+  input[type=text] { width: 160px; }
+
+  .catalog { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .chip {
+    background: #16203a; border: 1px solid var(--line); color: var(--text);
+    padding: 7px 12px; border-radius: 999px; font-size: 12.5px; cursor: pointer;
+    transition: all .15s;
+  }
+  .chip:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(56,189,248,.2); }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+  .stat {
+    background: #0d1424; border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 12px; text-align: center;
+  }
+  .stat b { font-size: 20px; display: block; }
+  .stat span { font-size: 11px; color: var(--muted); }
+  .ok b { color: var(--ok); } .warn b { color: var(--warn); } .bad b { color: var(--bad); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; padding: 8px 8px; border-bottom: 1px solid var(--line); }
+  td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  .qtyctl { display: flex; align-items: center; gap: 6px; }
+  .qtyctl button, .del, .updown {
+    background: #16203a; border: 1px solid var(--line); color: var(--text);
+    border-radius: 6px; width: 24px; height: 24px; cursor: pointer; font-size: 13px; line-height: 1;
+  }
+  .qtyctl button:hover, .del:hover, .updown:hover { border-color: var(--accent); }
+  .del { color: var(--bad); width: 28px; }
+  .totu { font-weight: 700; color: var(--accent); text-align: center; }
+
+  .switch { position: relative; display: inline-block; width: 34px; height: 18px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; inset: 0; background: #2a3450; border-radius: 999px; cursor: pointer; transition: .15s; }
+  .slider:before { content: ""; position: absolute; height: 12px; width: 12px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .15s; }
+  .switch input:checked + .slider { background: var(--accent); }
+  .switch input:checked + .slider:before { transform: translateX(16px); }
+
+  .elevation { margin-top: 18px; }
+  .rack {
+    background: #0d1424; border: 2px solid #31405f; border-radius: 10px;
+    padding: 14px 16px; display: flex; flex-direction: column-reverse; gap: 3px;
+    min-height: 300px;
+  }
+  .ru { border: 1px solid var(--line); border-radius: 4px; font-size: 10.5px; color: var(--muted); padding: 0 8px; }
+  .empty-ru { height: 22px; display: flex; align-items: center; gap: 8px; }
+  .empty-ru .num { opacity: .4; width: 26px; }
+  .empty-ru .fill { flex: 1; border-top: 1px dashed #26314d; }
+  .dev-ru {
+    height: 22px; display: flex; align-items: center; gap: 8px;
+    color: #fff; font-weight: 600; position: relative; overflow: hidden;
+  }
+  .dev-ru .num { width: 26px; opacity: .6; font-weight: 400; }
+  .dev-ru .name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dev-ru .tag { font-size: 9px; background: rgba(0,0,0,.35); padding: 1px 6px; border-radius: 999px; font-weight: 500; }
+  .dev-ru::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(45deg, rgba(255,255,255,.05) 0 6px, transparent 6px 12px);
+  }
+  .jack { box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); }
+
+  .hint { font-size: 11.5px; color: var(--muted); margin-top: 10px; line-height: 1.6; }
+  .hint b { color: var(--text); }
+  .footer-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .ghost {
+    background: transparent; border: 1px solid var(--line); color: var(--muted);
+    padding: 7px 12px; border-radius: 8px; font-size: 12px; cursor: pointer;
+  }
+  .ghost:hover { color: var(--text); border-color: var(--accent); }
+  .devicon { margin-right: 6px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎛️ 10" Rack U Calculator</h1>
+  <p>Plan your 10-inch rack: pick kit, allow a patch/jack panel per device, and watch the elevation fill live.</p>
+</header>
+
+<div class="wrap">
+  <div class="card">
+    <h2>Rack elevation <small>— fills bottom-up, front view</small></h2>
+
+    <div class="controls">
+      <div>
+        <label>Rack height</label>
+        <select id="rackSize">
+          <option value="4">4U wall box</option>
+          <option value="6">6U</option>
+          <option value="9" selected>9U</option>
+          <option value="10">10U</option>
+          <option value="12">12U</option>
+        </select>
+      </div>
+      <div>
+        <label>Jack panel U (per device)</label>
+        <input type="number" id="jackU" min="0" max="2" step="1" value="1" title="U reserved for a patch/jack panel in front of each device">
+      </div>
+      <div>
+        <label>Blank/filler U (spacer)</label>
+        <input type="number" id="spacerU" min="0" max="4" step="1" value="0">
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat" id="stUsed"><b>0U</b><span>Used</span></div>
+      <div class="stat" id="stFree"><b>0U</b><span>Free</span></div>
+      <div class="stat" id="stPct"><b>0%</b><span>Utilisation</span></div>
+      <div class="stat" id="stDev"><b>0</b><span>Devices</span></div>
+    </div>
+
+    <div class="catalog" id="catalog"></div>
+
+    <div class="elevation"><div class="rack" id="rack"></div></div>
+    <div class="hint" id="hint"></div>
+
+    <div class="footer-actions">
+      <button class="ghost" id="printBtn">🖨️ Print / PDF</button>
+      <button class="ghost" id="resetBtn">↺ Reset rack</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Build list <small>— your kit</small></h2>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Device</th><th>U</th><th>Qty</th><th>Jack</th><th>Tot U</th><th></th></tr>
+        </thead>
+        <tbody id="buildTable"></tbody>
+      </table>
+    </div>
+
+    <h2 style="margin-top:18px">Custom device</h2>
+    <div class="controls" style="margin-bottom:0">
+      <div>
+        <label>Name</label>
+        <input type="text" id="cName" placeholder="e.g. Media converter">
+      </div>
+      <div>
+        <label>Height (U)</label>
+        <input type="number" id="cU" min="1" max="4" step="1" value="1">
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button class="chip" id="addCustom">＋ Add to rack</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CATALOG = [
+  { name: "1U Switch (8–12p)", u: 1, icon: "🔀" },
+  { name: "1U Switch (24p)", u: 1, icon: "🔀" },
+  { name: "Router / Firewall", u: 1, icon: "🛡️" },
+  { name: "Patch panel (24p)", u: 1, icon: "🪛" },
+  { name: "NVR / DVR", u: 2, icon: "🎥" },
+  { name: "UPS (1U)", u: 1, icon: "🔋" },
+  { name: "Rack PDU", u: 1, icon: "🔌" },
+  { name: "Media converter", u: 1, icon: "📡" },
+  { name: "Shelf (passive)", u: 1, icon: "🗄️" },
+  { name: "Fan tray", u: 1, icon: "🌀" },
+];
+
+let state = { rackSize: 9, jackU: 1, spacerU: 0, items: [] };
+try {
+  const s = JSON.parse(localStorage.getItem("rack-calc") || "null");
+  if (s && Array.isArray(s.items)) state = Object.assign(state, s);
+} catch (e) {}
+
+const $ = id => document.getElementById(id);
+const save = () => localStorage.setItem("rack-calc", JSON.stringify(state));
+
+const COLORS = ["#38bdf8","#818cf8","#34d399","#fbbf24","#f472b6","#fb923c","#a78bfa","#2dd4bf"];
+
+function itemTotal(it) {
+  const jack = it.jack && state.jackU > 0 ? state.jackU : 0;
+  return (it.u + jack) * it.qty;
+}
+
+function rebuild() {
+  const rack = $("rack");
+  const used = state.items.reduce((a, it) => a + itemTotal(it), 0);
+  const over = Math.max(0, used - state.rackSize);
+  const size = state.rackSize;
+
+  let html = "";
+  const rows = [];
+  state.items.forEach(it => {
+    for (let q = 0; q < it.qty; q++) {
+      rows.push({ name: it.name, u: it.u, tag: it.u + "U", color: it.color, jackAfter: it.jack && state.jackU > 0 ? state.jackU : 0, icon: it.icon });
+    }
+  });
+  let pos = size;
+  const render = (name, icon, tag, color, jack) => {
+    html += block(name, icon, tag, color, pos, jack);
+    pos -= 1;
+  };
+  for (const r of rows) {
+    if (pos < 1) break;
+    render(r.name, r.icon, r.tag, r.color, false);
+    for (let j = 1; j < r.u && pos >= 1; j++) render("", "", "", r.color, false);
+    for (let j = 0; j < r.jackAfter && pos >= 1; j++) render("", "", state.jackU + "U", "", true);
+  }
+  for (let s = 0; s < state.spacerU && pos >= 1; s++) render("Blank / ventilation", "\u25ab\ufe0f", "1U", "#3b4666", false);
+  for (let u = pos; u >= 1; u--) {
+    html += `<div class="ru empty-ru"><span class="num">U${u}</span><span class="fill"></span><span style="opacity:.35;font-size:9px">free</span></div>`;
+  }
+  if (over > 0) {
+    html += `<div class="ru empty-ru" style="border-color:var(--bad)"><span class="num" style="color:var(--bad)">!</span><span class="fill" style="border-color:var(--bad)"></span><span style="color:var(--bad);font-size:10px">⚠ ${over}U over capacity</span></div>`;
+  }
+  rack.innerHTML = html;
+
+  const pct = Math.round((used / size) * 100);
+  $("stUsed").innerHTML = `<b>${used}U</b><span>Used</span>`;
+  $("stFree").innerHTML = `<b>${Math.max(0, size - used)}U</b><span>Free</span>`;
+  const pc = $("stPct");
+  pc.className = "stat " + (pct > 100 ? "bad" : pct >= 90 ? "warn" : "ok");
+  pc.innerHTML = `<b>${pct}%</b><span>Utilisation</span>`;
+  $("stDev").innerHTML = `<b>${state.items.reduce((a, i) => a + i.qty, 0)}</b><span>Devices</span>`;
+
+  $("hint").innerHTML =
+    `Total kit: <b>${used}U</b> in a <b>${size}U</b> 10" rack. ` +
+    (over > 0
+      ? `⚠ You're <b>${over}U over</b> — remove kit, shrink jack panel U, or pick a taller rack.`
+      : used === size
+        ? `✅ Perfect fit — rack is full.`
+        : `✅ Fits with <b>${size - used}U</b> to spare (or for growth).`);
+
+  const tb = $("buildTable");
+  tb.innerHTML = state.items.length ? state.items.map((it, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td>${it.icon || "📦"} ${it.name}</td>
+      <td style="text-align:center">${it.u}U${it.jack && state.jackU > 0 ? `+${state.jackU}` : ""}</td>
+      <td><div class="qtyctl">
+        <button data-a="dec" data-i="${i}">−</button><span>${it.qty}</span><button data-a="inc" data-i="${i}">＋</button>
+      </div></td>
+      <td><label class="switch"><input type="checkbox" data-a="jack" data-i="${i}" ${it.jack ? "checked" : ""}><span class="slider"></span></label></td>
+      <td class="totu">${itemTotal(it)}U</td>
+      <td><button class="del" data-a="del" data-i="${i}">✕</button></td>
+    </tr>`).join("")
+    : `<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:20px">Add kit from the catalogue above ↑</td></tr>`;
+
+  $("rackSize").value = state.rackSize;
+  $("jackU").value = state.jackU;
+  $("spacerU").value = state.spacerU;
+  save();
+}
+
+function block(name, icon, tag, color, uNum, jack) {
+  const bg = jack ? "#475569" : `linear-gradient(180deg,${color},${color}cc)`;
+  const label = jack ? "\ud83e\ude9b Jack / patch panel" : `<span class="devicon">${icon || "\ud83d\udce6"}</span>${name}`;
+  return `<div class="ru dev-ru jack" style="background:${bg}">` +
+    `<span class="num">U${uNum}</span><span class="name">${label}</span>` +
+    (tag ? `<span class="tag">${tag}</span>` : "") + `</div>`;
+}
+
+$("catalog").innerHTML = CATALOG.map((c, i) =>
+  `<button class="chip" data-cat="${i}">${c.icon} ${c.name}</button>`).join("");
+
+$("catalog").addEventListener("click", e => {
+  const i = e.target.dataset && e.target.dataset.cat;
+  if (i === undefined) return;
+  const c = CATALOG[+i];
+  state.items.push({ name: c.name, u: c.u, qty: 1, jack: c.name.startsWith("Patch"), color: COLORS[state.items.length % COLORS.length], icon: c.icon });
+  rebuild();
+});
+
+$("buildTable").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  const i = +b.dataset.i, a = b.dataset.a;
+  if (a === "inc") state.items[i].qty++;
+  if (a === "dec") { state.items[i].qty--; if (state.items[i].qty < 1) state.items.splice(i, 1); }
+  if (a === "del") state.items.splice(i, 1);
+  if (state.items[i]) rebuild(); else rebuild();
+});
+
+$("buildTable").addEventListener("change", e => {
+  if (e.target.dataset.a === "jack") {
+    state.items[+e.target.dataset.i].jack = e.target.checked;
+    rebuild();
+  }
+});
+
+$("addCustom").addEventListener("click", () => {
+  const name = $("cName").value.trim();
+  const u = Math.max(1, Math.min(4, +$("cU").value || 1));
+  if (!name) { $("cName").focus(); return; }
+  state.items.push({ name, u, qty: 1, jack: false, color: COLORS[state.items.length % COLORS.length], icon: "📦" });
+  $("cName").value = "";
+  rebuild();
+});
+
+$("rackSize").addEventListener("change", e => { state.rackSize = +e.target.value; rebuild(); });
+$("jackU").addEventListener("input", e => { state.jackU = Math.max(0, Math.min(2, +e.target.value || 0)); rebuild(); });
+$("spacerU").addEventListener("input", e => { state.spacerU = Math.max(0, Math.min(4, +e.target.value || 0)); rebuild(); });
+$("printBtn").addEventListener("click", () => window.print());
+$("resetBtn").addEventListener("click", () => {
+  state.items = []; state.spacerU = 0; rebuild();
+});
+
+rebuild();
+</script>
+</body>
+</html>
