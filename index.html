@@ -437,19 +437,49 @@ function slotLabel(i, size) {
   return "U" + (size - i);
 }
 
-function nucPackedU() {
-  const items = state.items.filter(it => it.key === "nuc10");
-  if (!items.length) return 0;
-  const totalQty = items.reduce((a, it) => a + it.qty, 0);
-  const jacks = items.reduce((a, it) => a + (it.jack && state.jackU > 0 ? state.jackU * it.qty : 0), 0);
-  const pairs = Math.floor(totalQty / 2);
-  return pairs * 3 + (totalQty % 2) * 2 + jacks;
+const PACKABLE = {
+  nuc10: { pairU: 3, singleU: 2, label: "Intel NUC (10th gen)", color: "#38bdf8", icon: "\ud83d\udda5\ufe0f" },
+  flexmini: { pairU: 1, singleU: 1, label: "UniFi Flex Mini", color: "#34d399", icon: "\ud83d\udd0c" },
+  flexmini25: { pairU: 1, singleU: 1, label: "UniFi Flex Mini 2.5G", color: "#fbbf24", icon: "\ud83d\udd0c" }
+};
+
+function packedU() {
+  let total = 0;
+  Object.keys(PACKABLE).forEach(key => {
+    const items = state.items.filter(it => it.key === key);
+    if (!items.length) return;
+    const qty = items.reduce((a, it) => a + it.qty, 0);
+    const jacks = items.reduce((a, it) => a + (it.jack && state.jackU > 0 ? state.jackU * it.qty : 0), 0);
+    const pk = PACKABLE[key];
+    total += Math.floor(qty / 2) * pk.pairU + (qty % 2) * pk.singleU + jacks;
+  });
+  return total;
+}
+
+function packedRows() {
+  const out = [];
+  Object.keys(PACKABLE).forEach(key => {
+    const items = state.items.filter(it => it.key === key);
+    if (!items.length) return;
+    const pk = PACKABLE[key];
+    let qty = items.reduce((a, it) => a + it.qty, 0);
+    const jackAfter = Math.max(0, ...items.map(it => it.jack && state.jackU > 0 ? state.jackU : 0));
+    while (qty >= 2) {
+      out.push({ name: "2\u00d7 " + pk.label, u: pk.pairU, tag: pk.pairU + "U", color: pk.color, icon: pk.icon, jackAfter: 0 });
+      out.push({ name: "", u: 0, tag: "", color: "", icon: "", jackAfter: jackAfter });
+      qty -= 2;
+    }
+    for (let q = 0; q < qty; q++) {
+      out.push({ name: pk.label, u: pk.singleU, tag: pk.singleU + "U", color: pk.color, icon: pk.icon, jackAfter: jackAfter });
+    }
+  });
+  return out;
 }
 
 function itemTotal(it) {
   if (it.u === 0) return 0;
   const jack = it.jack && state.jackU > 0 ? state.jackU : 0;
-  if (it.key === "nuc10") return 0;
+  if (PACKABLE[it.key]) return 0;
   return it.u * it.qty + jack * it.qty;
 }
 
@@ -491,26 +521,14 @@ function renderPhys() {
   if (!el) return;
   const size = state.rackSize;
   const rows = [];
-  let nucCount = 0, nucJackAfter = 0;
   state.items.forEach(it => {
-    if (it.key === "nuc10") {
-      nucCount += it.qty;
-      nucJackAfter = Math.max(nucJackAfter, it.jack && state.jackU > 0 ? state.jackU : 0);
-      return;
-    }
+    if (PACKABLE[it.key]) return;
     for (let q = 0; q < it.qty; q++) {
       rows.push({ name: it.name, u: it.u, color: it.color, img: it.img,
         jackAfter: it.jack && state.jackU > 0 ? state.jackU : 0 });
     }
   });
-  while (nucCount >= 2) {
-    rows.push({ name: "2\u00d7 Intel NUC (10th gen)", u: 3, color: "#38bdf8", img: null, jackAfter: 0 });
-    rows.push({ name: "", u: 0, color: "", img: null, jackAfter: nucJackAfter });
-    nucCount -= 2;
-  }
-  for (let q = 0; q < nucCount; q++) {
-    rows.push({ name: "Intel NUC (10th gen)", u: 2, color: "#38bdf8", img: null, jackAfter: nucJackAfter });
-  }
+  packedRows().forEach(r => rows.push({ ...r, img: null }));
   let pos = 0;
   let html = "";
   const cell = (r, uIdx) => {
@@ -557,18 +575,13 @@ function renderPhys() {
 
 function rebuild() {
   const rack = $("rack");
-  const used = state.items.reduce((a, it) => a + itemTotal(it), 0) + nucPackedU();
+  const used = state.items.reduce((a, it) => a + itemTotal(it), 0) + packedU();
   const over = Math.max(0, used - state.rackSize);
   const size = state.rackSize;
 
   const rows = [];
-  let nucCount = 0, nucJackAfter = 0;
   state.items.forEach(it => {
-    if (it.key === "nuc10") {
-      nucCount += it.qty;
-      nucJackAfter = Math.max(nucJackAfter, it.jack && state.jackU > 0 ? state.jackU : 0);
-      return;
-    }
+    if (PACKABLE[it.key]) return;
     for (let q = 0; q < it.qty; q++) {
       rows.push({
         name: it.name, u: it.u, tag: it.u + "U", color: it.color, icon: it.icon, img: it.img,
@@ -576,14 +589,7 @@ function rebuild() {
       });
     }
   });
-  while (nucCount >= 2) {
-    rows.push({ name: "2\u00d7 Intel NUC (10th gen)", u: 3, tag: "3U", color: "#38bdf8", icon: "\ud83d\udda5\ufe0f", img: null, jackAfter: 0 });
-    rows.push({ name: "", u: 0, tag: "", color: "", icon: "", img: null, jackAfter: nucJackAfter });
-    nucCount -= 2;
-  }
-  for (let q = 0; q < nucCount; q++) {
-    rows.push({ name: "Intel NUC (10th gen)", u: 2, tag: "2U", color: "#38bdf8", icon: "\ud83d\udda5\ufe0f", img: null, jackAfter: nucJackAfter });
-  }
+  packedRows().forEach(r => rows.push({ ...r, img: null }));
 
   let pos = 0;
   const out = [];
@@ -983,7 +989,7 @@ function initBlockly() {
         setJackU: ju => { state.jackU = Math.max(0, Math.min(2, ju)); },
         clear: () => { state.items = []; },
         freeU: () => {
-          const used = state.items.reduce((a, it) => a + itemTotal(it), 0) + nucPackedU();
+          const used = state.items.reduce((a, it) => a + itemTotal(it), 0) + packedU();
           return state.rackSize - used;
         }
       };
