@@ -45,7 +45,7 @@
   header .ver { font-family: var(--font-mono); font-size: 12px; color: var(--accent); font-weight: 500; vertical-align: middle; }
   .ex-pick { white-space: nowrap; margin-left: 10px; }
   .ex-pick select { font-size: 12.5px; padding: 4px 8px; max-width: 320px; }
-  .wrap { display: grid; grid-template-columns: 1fr 420px; gap: 12px; padding: 0 0 24px; }
+  .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(420px, 50%); gap: 12px; padding: 0 0 24px; }
   @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
 
   .card {
@@ -99,15 +99,17 @@
   .switch input:checked + .slider:before { transform: translateX(16px); }
 
   .elevation { margin-top: 18px; }
+  .rack { --ru-h: 22px; }
+  .empty-ru, .dev-ru { height: var(--ru-h); }
   .phys-head { display: flex; align-items: baseline; gap: 10px; margin: 18px 0 8px; }
   .phys-head h2 { margin-bottom: 0; }
   .phys-scale { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
   .phys-rack {
-    width: 381px; max-width: 100%; margin: 0 auto;
+    width: 508px; max-width: 100%; margin: 0 auto;
     background: var(--panel2); border: 2px solid var(--line); border-radius: 8px;
     padding: 16px 18px; display: flex; flex-direction: column-reverse; gap: 0;
   }
-  .phys-ru { position: relative; height: 66.7px; border-top: 1px solid var(--line); overflow: hidden; }
+  .phys-ru { position: relative; height: 88.9px; border-top: 1px solid var(--line); overflow: hidden; }
   .phys-ru:first-child { border-top: none; }
   .phys-ru .lbl { position: absolute; left: 8px; top: 4px; font-family: var(--font-mono); font-size: 10px; color: var(--muted); opacity: .7; z-index: 1; }
   .phys-ru .body {
@@ -116,19 +118,19 @@
   }
   .phys-ru .body img { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); height: 92%; max-width: 45%; object-fit: contain; opacity: .9; }
   .phys-ru .body .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; z-index: 1; }
-  .phys-free { height: 66.7px; display: flex; align-items: center; padding-left: 40px; color: var(--muted); font-size: 11px; border-top: 1px dashed var(--line); position: relative; }
+  .phys-free { height: 88.9px; display: flex; align-items: center; padding-left: 40px; color: var(--muted); font-size: 11px; border-top: 1px dashed var(--line); position: relative; }
   .phys-free .lbl { position: absolute; left: 8px; top: 4px; font-family: var(--font-mono); font-size: 10px; opacity: .7; }
   .rack {
     background: var(--panel2); border: 2px solid var(--line); border-radius: 12px;
     padding: 14px 16px; display: flex; flex-direction: column-reverse; gap: 3px;
-    min-height: 300px;
+    min-height: 220px;
   }
   .ru { border: 1px solid var(--line); border-radius: 4px; font-size: 10.5px; color: var(--muted); padding: 0 8px; }
-  .empty-ru { height: 22px; display: flex; align-items: center; gap: 8px; }
+  .empty-ru { display: flex; align-items: center; gap: 8px; }
   .empty-ru .num { opacity: .4; width: 26px; }
   .empty-ru .fill { flex: 1; border-top: 1px dashed var(--line); }
   .dev-ru {
-    height: 22px; display: flex; align-items: center; gap: 8px;
+    display: flex; align-items: center; gap: 8px;
     color: #fff; font-weight: 600; position: relative; overflow: hidden;
   }
   .dev-ru .num { width: 26px; opacity: .6; font-weight: 400; }
@@ -168,7 +170,7 @@
   .blockly-wrap { margin-top: 18px; }
   .blockly-wrap h2 small { color: var(--muted); font-weight: 400; }
   .blockly-canvas { position: relative; }
-  #blocklyDiv { width: 100%; height: 420px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+  #blocklyDiv { width: 100%; height: 240px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
   .zoom { position: absolute; right: 12px; bottom: 12px; display: flex; gap: 6px; z-index: 5; }
   .zoom button { background: var(--panel2); border: 1px solid var(--line); color: var(--text); border-radius: 6px; min-width: 32px; padding: 5px 9px; font-weight: 700; cursor: pointer; font-size: 13px; }
   .zoom button:hover { border-color: var(--accent); }
@@ -217,7 +219,7 @@
 </head>
 <body>
 <header>
-  <h1>🎛️ 10" Rack U Calculator <span class="ver">v1.0.0</span></h1>
+  <h1>🎛️ 10" Rack U Calculator <span class="ver">v1.1.0</span></h1>
   <p>Plan your 10-inch rack: pick kit, allow a patch/jack panel per device, and watch the elevation fill live.
      <span class="ex-pick">Example:
        <select id="examplePick" title="Pick a community example build — loads when you press Load">
@@ -303,7 +305,7 @@
   <div class="card">
     <div class="phys-head">
       <h2>Physical view</h2>
-      <span class="phys-scale">10" rack · 1U = 44.45mm · to scale</span>
+      <span class="phys-scale">10" rack · 1U = 44.45mm · 2px/mm</span>
     </div>
     <div class="phys-rack" id="physRack"></div>
 
@@ -488,7 +490,7 @@ function renderPhys() {
   let pos = 0;
   let html = "";
   const cell = (r, uIdx) => {
-    const h = Math.round(66.7 * Math.min(r.u, size - uIdx));
+    const h = Math.round(88.9 * Math.min(r.u, size - uIdx));
     const img = r.img ? `<img src="${r.img}" alt="" loading="lazy">` : "";
     return `<div class="phys-ru" style="height:${h}px;background:linear-gradient(180deg,${r.color},${r.color}bb)">
       <span class="lbl">${slotLabel(uIdx, size)}</span>
@@ -501,7 +503,7 @@ function renderPhys() {
     html += cell(r, pos);
     pos += r.u;
     for (let j = 0; j < r.jackAfter && pos < size; j++) {
-      const hj = Math.round(66.7 * state.jackU);
+      const hj = Math.round(88.9 * state.jackU);
       html += `<div class="phys-ru" style="height:${hj}px;background:#475569">
         <span class="lbl">${slotLabel(pos, size)}</span>
         <div class="body"><span class="nm">🪛 Jack / patch panel</span></div>
@@ -556,6 +558,7 @@ function rebuild() {
     out.push(`<div class="ru empty-ru" style="border-color:var(--bad)"><span class="num" style="color:var(--bad)">!</span><span class="fill" style="border-color:var(--bad)"></span><span style="color:var(--bad);font-size:10px">\u26a0 ${over}U over capacity</span></div>`);
   }
   rack.innerHTML = out.join("");
+  rack.style.setProperty("--ru-h", Math.max(14, Math.round(330 / size) - 3) + "px");
   renderPhys();
 
   const pct = Math.round((used / size) * 100);
