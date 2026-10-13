@@ -242,7 +242,8 @@
           <option value="6">6U</option>
           <option value="9">9U</option>
           <option value="10">10U</option>
-          <option value="12" selected>12U</option>
+          <option value="12">12U</option>
+          <option value="16" selected>16U (+4U extension)</option>
         </select>
       </div>
       <div>
@@ -418,7 +419,7 @@ const GENERIC = [
   { key: "fan", name: "Fan tray", u: 1, icon: "\ud83c\udf00", cat: "power", ports: null, stl: null, img: null, note: null }
 ];
 
-let state = { rackSize: 12, jackU: 1, spacerU: 0, numScheme: "b0", items: [], downloaded: [] };
+let state = { rackSize: 16, jackU: 1, spacerU: 0, numScheme: "b0", items: [], downloaded: [] };
 try {
   const s = JSON.parse(localStorage.getItem("rack-calc") || "null");
   if (s && Array.isArray(s.items)) state = Object.assign(state, s);
@@ -882,7 +883,7 @@ function initBlockly() {
     {
       type: "rack_set_rack",
       message0: "set rack height %1 U",
-      args0: [{ type: "field_number", name: "U", value: 12, min: 4, max: 12, precision: 1 }],
+      args0: [{ type: "field_number", name: "U", value: 16, min: 4, max: 16, precision: 1 }],
       previousStatement: null, nextStatement: null,
       colour: 160, tooltip: "Set the rack size", helpUrl: ""
     },
@@ -984,7 +985,7 @@ function initBlockly() {
             last.jack = !!jack;
           }
         },
-        setRack: u => { state.rackSize = Math.max(4, Math.min(12, u)); },
+        setRack: u => { state.rackSize = Math.max(4, Math.min(16, u)); },
         setJackU: ju => { state.jackU = Math.max(0, Math.min(2, ju)); },
         clear: () => { state.items = []; },
         freeU: () => {
