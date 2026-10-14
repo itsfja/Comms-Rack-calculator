@@ -219,7 +219,7 @@
 </head>
 <body>
 <header>
-  <h1>🎛️ 10" Rack U Calculator <span class="ver">v1.2.0</span></h1>
+  <h1>🎛️ 10" Rack U Calculator <span class="ver">v1.3.0</span></h1>
   <p>Plan your 10-inch rack: pick kit, allow a patch/jack panel per device, and watch the elevation fill live.
      <span class="ex-pick">Example:
        <select id="examplePick" title="Pick a community example build — loads when you press Load">
@@ -277,6 +277,7 @@
     <div class="hint" id="hint"></div>
 
     <div class="footer-actions">
+      <button class="ghost" id="arrangeBtn" title="Sort the build into the recommended stack: power at the bottom, then switches, keystone panels, active gear, then blanks and fans at the top">✨ Auto-arrange</button>
       <button class="ghost" id="printBtn">🖨️ Print / PDF</button>
       <button class="ghost" id="resetBtn">↺ Reset rack</button>
     </div>
@@ -664,7 +665,8 @@ function rebuild() {
       ? `\u26a0 You're <b>${over}U over</b> \u2014 remove kit, shrink jack panel U, or pick a taller rack.`
       : used === size
         ? `\u2705 Perfect fit \u2014 rack is full.`
-        : `\u2705 Fits with <b>${size - used}U</b> to spare (or for growth).`);
+        : `\u2705 Fits with <b>${size - used}U</b> to spare (or for growth).`) +
+    ` <button class="chip" id="hintArrange" style="margin-left:6px">\u2728 Auto-arrange optimal stack</button>`;
 
   const tb = $("buildTable");
   tb.innerHTML = state.items.length ? state.items.map((it, i) => `
@@ -742,6 +744,10 @@ $("catalog").innerHTML =
   `<span class="catalog-title">Generic</span>` +
   GENERIC.map((d, i) => `<button class="chip" data-gen="${i}">${d.icon} ${d.name}</button>`).join("");
 
+$("hint").addEventListener("click", e => {
+  if (e.target.id === "hintArrange") autoArrange();
+});
+
 $("catalog").addEventListener("click", e => {
   const t = e.target.closest("button");
   if (!t || !t.dataset) return;
@@ -805,6 +811,35 @@ $("printBtn").addEventListener("click", () => window.print());
 $("resetBtn").addEventListener("click", () => {
   state.items = []; state.spacerU = 0; rebuild();
 });
+
+/* Optimal stack: heavy power at the bottom, switch hub next, keystone
+   panels around the gear they serve, rarely-touched gear on top. */
+function arrangeTier(key) {
+  const d = findDevice(key) || {};
+  if (key === "ups" || key === "pdu") return 0;
+  if (/switch|sw8|sw24|crs305|flexmini/i.test(key + " " + (d.name || ""))) return 1;
+  if (key === "pp24") return 2;
+  if (key === "blank" || key === "fan") return 5;
+  if (d.cat === "power") return 0;
+  if (d.cat === "passive") return 2;
+  return 3;
+}
+
+function autoArrange() {
+  if (!state.items.length) return;
+  const tiers = [0, 1, 2, 3, 5];
+  const seen = {};
+  state.items.forEach(it => { seen[it.key] = (seen[it.key] || 0) + 1; });
+  state.items.forEach(it => { it._seq = seen[it.key]--; });
+  state.items.sort((a, b) => {
+    const ta = arrangeTier(a.key), tb = arrangeTier(b.key);
+    if (ta !== tb) return ta - tb;
+    return a._seq - b._seq;
+  });
+  state.items.forEach(it => { delete it._seq; });
+  rebuild();
+}
+$("arrangeBtn").addEventListener("click", autoArrange);
 
 $("nukeBtn").addEventListener("click", () => {
   const ok = window.confirm(
