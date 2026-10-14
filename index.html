@@ -123,8 +123,10 @@
   .rack {
     background: var(--panel2); border: 2px solid var(--line); border-radius: 12px;
     padding: 14px 16px; display: flex; flex-direction: column-reverse; gap: 3px;
-    min-height: 220px;
+    min-height: 220px; position: relative;
   }
+  .wire-overlay { position: absolute; top: 0; left: 0; pointer-events: none; overflow: visible; }
+  .wire-toggle { display: inline-flex; align-items: center; gap: 7px; font-size: 11px; color: var(--muted); }
   .ru { border: 1px solid var(--line); border-radius: 4px; font-size: 10.5px; color: var(--muted); padding: 0 8px; }
   .empty-ru { display: flex; align-items: center; gap: 8px; }
   .empty-ru .num { opacity: .4; width: 26px; }
@@ -219,7 +221,7 @@
 </head>
 <body>
 <header>
-  <h1>🎛️ 10" Rack U Calculator <span class="ver">v1.3.0</span></h1>
+  <h1>🎛️ 10" Rack U Calculator <span class="ver">v1.4.0</span></h1>
   <p>Plan your 10-inch rack: pick kit, allow a patch/jack panel per device, and watch the elevation fill live.
      <span class="ex-pick">Example:
        <select id="examplePick" title="Pick a community example build — loads when you press Load">
@@ -277,6 +279,9 @@
     <div class="hint" id="hint"></div>
 
     <div class="footer-actions">
+      <span class="wire-toggle" title="Draw cable runs from each device to its nearest keystone/patch panel">
+        <label class="switch"><input type="checkbox" id="wireToggle"><span class="slider"></span></label> Cable runs
+      </span>
       <button class="ghost" id="arrangeBtn" title="Sort the build into the recommended stack: power at the bottom, then switches, keystone panels, active gear, then blanks and fans at the top">✨ Auto-arrange</button>
       <button class="ghost" id="printBtn">🖨️ Print / PDF</button>
       <button class="ghost" id="resetBtn">↺ Reset rack</button>
@@ -450,7 +455,7 @@ const GENERIC = [
   { key: "fan", name: "Fan tray", u: 1, icon: "\ud83c\udf00", cat: "power", ports: null, stl: null, img: null, note: null }
 ];
 
-let state = { rackSize: 16, jackU: 1, spacerU: 0, numScheme: "b0", items: [], downloaded: [], cab: { ports: 12, spares: 10, len: 2, slots: 12 } };
+let state = { rackSize: 16, jackU: 1, spacerU: 0, numScheme: "b0", items: [], downloaded: [], cab: { ports: 12, spares: 10, len: 2, slots: 12 }, showWiring: true };
 try {
   const s = JSON.parse(localStorage.getItem("rack-calc") || "null");
   if (s && Array.isArray(s.items)) state = Object.assign(state, s);
@@ -626,6 +631,7 @@ function rebuild() {
 
   let pos = 0;
   const out = [];
+  const wire = [];
   const render = (name, icon, tag, color, jack, img) => {
     out.push(block(name, icon, tag, color, pos, jack, img));
     pos += 1;
@@ -633,12 +639,19 @@ function rebuild() {
   for (const r of rows) {
     if (pos >= size) break;
     if (r.u === 0) {
-      for (let j = 0; j < r.jackAfter && pos < size; j++) render("", "", state.jackU + "U", "#64748b", true, null);
+      for (let j = 0; j < r.jackAfter && pos < size; j++) {
+        wire.push({ kind: "panel", slot: pos });
+        render("", "", state.jackU + "U", "#64748b", true, null);
+      }
       continue;
     }
+    wire.push({ kind: "dev", slot: pos, color: r.color, name: r.name });
     render(r.name, r.icon, r.tag, r.color, false, r.img);
     for (let j = 1; j < r.u && pos < size; j++) render("", "", "", r.color, false, null);
-    for (let j = 0; j < r.jackAfter && pos < size; j++) render("", "", state.jackU + "U", "#64748b", true, null);
+    for (let j = 0; j < r.jackAfter && pos < size; j++) {
+      wire.push({ kind: "panel", slot: pos });
+      render("", "", state.jackU + "U", "#64748b", true, null);
+    }
   }
   for (let s = 0; s < state.spacerU && pos < size; s++) render("Blank / ventilation", "\u25ab\ufe0f", "1U", "#3b4666", false, null);
   for (let i = pos; i < size; i++) {
@@ -649,6 +662,7 @@ function rebuild() {
   }
   rack.innerHTML = out.join("");
   rack.style.setProperty("--ru-h", Math.max(14, Math.round(330 / size) - 3) + "px");
+  renderWiring(rack, wire);
   renderPhys();
 
   const pct = Math.round((used / size) * 100);
@@ -693,6 +707,52 @@ function rebuild() {
   $("spacerU").value = state.spacerU;
   renderCabling();
   save();
+}
+
+function renderWiring(rack, wire) {
+  let ov = rack.querySelector(".wire-overlay");
+  if (ov) ov.remove();
+  const cb = $("wireToggle");
+  if (cb) {
+    cb.checked = !!state.showWiring;
+    if (!cb.dataset.bound) { cb.dataset.bound = 1; cb.addEventListener("change", () => { state.showWiring = cb.checked; rebuild(); }); }
+  }
+  if (!state.showWiring || !wire || !wire.length) return;
+  const devs = wire.filter(w => w.kind === "dev" && w.name);
+  const panels = wire.filter(w => w.kind === "panel");
+  if (!devs.length || !panels.length) return;
+  const rowsEls = rack.querySelectorAll(".ru");
+  const slotY = slot => {
+    const el = rowsEls[slot];
+    if (!el) return null;
+    return el.offsetTop + el.offsetHeight / 2;
+  };
+  const H = rack.offsetHeight, W = rack.offsetWidth;
+  const used = [];
+  let paths = "";
+  devs.forEach((d, i) => {
+    let best = null;
+    panels.forEach(pn => {
+      const dy = Math.abs(pn.slot - d.slot);
+      if (!best || dy < best.dy) best = { pn, dy };
+    });
+    if (!best) return;
+    const y1 = slotY(d.slot), y2 = slotY(best.pn.slot);
+    if (y1 === null || y2 === null) return;
+    const lift = 18 + (used.length % 6) * 7;
+    used.push(1);
+    const x1 = W - 4, x2 = W - 4;
+    const midX = W + lift;
+    const stroke = d.color || "#38bdf8";
+    paths += `<path d="M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" opacity="0.85"/>`;
+  });
+  if (!paths) return;
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", "wire-overlay");
+  svg.setAttribute("width", W + 80);
+  svg.setAttribute("height", H);
+  svg.innerHTML = paths;
+  rack.appendChild(svg);
 }
 
 function renderCabling() {
