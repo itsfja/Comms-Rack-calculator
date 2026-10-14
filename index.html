@@ -345,6 +345,36 @@
     </div>
     <p class="hint">No mount yet? Add the device and use its <b>🔍 search</b> to look for a 10" rack mount STL on Printables, MakerWorld or STLFinder.</p>
   </div>
+
+  <div class="card">
+    <h2>Cabling requirements <small>— keystones for your build</small></h2>
+    <div class="controls">
+      <div>
+        <label>Ports to cable</label>
+        <input type="number" id="cabPorts" min="1" max="96" step="1" value="12">
+      </div>
+      <div>
+        <label>Spare keystones (%)</label>
+        <input type="number" id="cabSpares" min="0" max="50" step="5" value="10" title="Headroom for future ports">
+      </div>
+      <div>
+        <label>Avg run length (m)</label>
+        <input type="number" id="cabLen" min="0.5" max="50" step="0.5" value="2">
+      </div>
+      <div>
+        <label>Keystones per panel</label>
+        <input type="number" id="cabSlots" min="1" max="24" step="1" value="12" title="Slots on the keystone patch panel you use">
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat" id="stKeys"><b>0</b><span>Keystones</span></div>
+      <div class="stat" id="stPatches"><b>0</b><span>Patch cords</span></div>
+      <div class="stat" id="stCable"><b>0m</b><span>Bulk cable</span></div>
+      <div class="stat" id="stPanels"><b>0</b><span>Panels needed</span></div>
+    </div>
+    <div class="hint" id="cabHint"></div>
+  </div>
 </div>
 
 <div id="toastSlot"></div>
@@ -419,11 +449,13 @@ const GENERIC = [
   { key: "fan", name: "Fan tray", u: 1, icon: "\ud83c\udf00", cat: "power", ports: null, stl: null, img: null, note: null }
 ];
 
-let state = { rackSize: 16, jackU: 1, spacerU: 0, numScheme: "b0", items: [], downloaded: [] };
+let state = { rackSize: 16, jackU: 1, spacerU: 0, numScheme: "b0", items: [], downloaded: [], cab: { ports: 12, spares: 10, len: 2, slots: 12 } };
 try {
   const s = JSON.parse(localStorage.getItem("rack-calc") || "null");
   if (s && Array.isArray(s.items)) state = Object.assign(state, s);
   if (!Array.isArray(state.downloaded)) state.downloaded = [];
+if (!state.cab || typeof state.cab !== "object") state.cab = {};
+state.cab = Object.assign({ ports: 12, spares: 10, len: 2, slots: 12 }, state.cab);
 } catch (e) {}
 
 const $ = id => document.getElementById(id);
@@ -657,7 +689,39 @@ function rebuild() {
   $("numScheme").value = state.numScheme;
   $("jackU").value = state.jackU;
   $("spacerU").value = state.spacerU;
+  renderCabling();
   save();
+}
+
+function renderCabling() {
+  if (!$("cabPorts")) return;
+  const c = state.cab;
+  $("cabPorts").value = c.ports; $("cabSpares").value = c.spares;
+  $("cabLen").value = c.len; $("cabSlots").value = c.slots;
+  const spareKeys = Math.ceil((c.ports * c.spares) / 100);
+  const keystones = c.ports + spareKeys;
+  const panelsNeeded = Math.ceil(keystones / c.slots);
+  const panelsInRack = state.items
+    .filter(it => it.key === "pp24")
+    .reduce((a, it) => a + it.qty, 0);
+  const slotsInRack = panelsInRack * c.slots;
+  const gap = keystones - slotsInRack;
+  $("stKeys").innerHTML = `<b>${keystones}</b><span>Keystones</span>`;
+  $("stPatches").innerHTML = `<b>${keystones}</b><span>Patch cords</span>`;
+  $("stCable").innerHTML = `<b>${Math.ceil(keystones * c.len)}m</b><span>Bulk cable</span>`;
+  const sp = $("stPanels");
+  sp.className = "stat " + (panelsNeeded > panelsInRack ? "bad" : "ok");
+  sp.innerHTML = `<b>${panelsNeeded}</b><span>Panels needed</span>`;
+  $("cabHint").innerHTML =
+    `<b>${c.ports}</b> ports + <b>${spareKeys}</b> spare = <b>${keystones} keystones</b> ` +
+    `(punch-down Cat6 inserts clip straight into the panels). ` +
+    `At <b>${c.slots}</b> slots per panel that needs <b>${panelsNeeded} patch panel${panelsNeeded === 1 ? "" : "s"}</b>; ` +
+    (panelsInRack === 0
+      ? `you have none in the rack yet — add the <b>Patch panel (keystone)</b> from the catalogue.`
+      : gap > 0
+        ? `⚠ your <b>${panelsInRack}</b> panel${panelsInRack === 1 ? "" : "s"} only hold <b>${slotsInRack}</b> — <b>${gap}</b> keystones short.`
+        : `✅ your <b>${panelsInRack}</b> panel${panelsInRack === 1 ? "" : "s"} hold <b>${slotsInRack}</b> slots, so it fits with <b>${slotsInRack - keystones}</b> to spare.`) +
+    ` Patch cords: <b>${keystones}</b> short front-of-rack runs, plus about <b>${Math.ceil(keystones * c.len)}m</b> of bulk cable at ${c.len}m per run.`;
 }
 
 function block(name, icon, tag, color, uNum, jack, img) {
@@ -727,6 +791,12 @@ $("addCustom").addEventListener("click", () => {
   $("cName").value = ""; $("cStl").value = ""; $("cCreator").value = "";
 });
 
+[["cabPorts", "ports", 1, 96], ["cabSpares", "spares", 0, 50], ["cabLen", "len", 0.5, 50], ["cabSlots", "slots", 1, 24]].forEach(([id, key, min, max]) => {
+  $(id).addEventListener("input", e => {
+    state.cab[key] = Math.max(min, Math.min(max, +e.target.value || min));
+    rebuild();
+  });
+});
 $("rackSize").addEventListener("change", e => { state.rackSize = +e.target.value; rebuild(); });
 $("numScheme").addEventListener("change", e => { state.numScheme = e.target.value; rebuild(); });
 $("jackU").addEventListener("input", e => { state.jackU = Math.max(0, Math.min(2, +e.target.value || 0)); rebuild(); });
