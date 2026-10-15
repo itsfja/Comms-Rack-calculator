@@ -93,7 +93,7 @@
 <text x="62" y="402" fill="#818cf8" font-size="12.5" font-weight="700">UniFi USG (UCG-Fiber)</text>
 <text x="62" y="418" fill="#aab2c7" font-size="10.5">7× ethernet</text>
 <rect x="54" y="440" width="236" height="46.0" rx="5" fill="#f59e0b22" stroke="#f59e0b" stroke-width="1.5"/>
-<text x="62" y="460" fill="#f59e0b" font-size="12.5" font-weight="700">MikroTik CRS305</text>
+<text x="62" y="460" fill="#f59e0b" font-size="12.5" font-weight="700">MikroTik CRS304-4XG-IN</text>
 <text x="62" y="476" fill="#aab2c7" font-size="10.5">4× 10G · 1× mgmt</text>
 <rect x="54" y="556" width="236" height="46.0" rx="5" fill="#ef444422" stroke="#ef4444" stroke-width="1.5"/>
 <text x="62" y="576" fill="#ef4444" font-size="12.5" font-weight="700">UPS / PDU</text>
