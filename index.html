@@ -229,7 +229,7 @@
 </head>
 <body>
 <header>
-  <h1>🎛️ 10" Rack U Calculator <span class="ver">v2.8.0</span></h1>
+  <h1>🎛️ 10" Rack U Calculator <span class="ver">v2.8.1</span></h1>
   <p>Plan your 10-inch rack: pick kit, allow a patch/jack panel per device, and watch the elevation fill live.
      <span class="ex-pick">Example:
        <select id="examplePick" title="Pick a community example build — loads when you press Load">
@@ -1030,12 +1030,12 @@ function autoArrange() {
     return a._seq - b._seq;
   });
   state.items.forEach(it => { delete it._seq; });
-  /* Interleave keystone panels: between switch-tier gear when there are
-     several, otherwise directly above the highest active/storage device
-     (NUCs, NAS) so panels sit adjacent to the gear they patch into. */
+  /* Co-locate keystone panels with the heavy gear (NUCs, storage) that
+     hosts them — one panel per device boundary. Fall back to interleaving
+     between switch-tier gear only when there are no heavy hosts. */
   const split = [];
   state.items.forEach(it => {
-    if ((it.key === "pp24" || it.key === "pphalf") && it.qty > 1) {
+    if (it.qty > 1) {
       for (let q = 0; q < it.qty; q++) split.push(Object.assign({}, it, { qty: 1 }));
     } else split.push(it);
   });
@@ -1048,34 +1048,48 @@ function autoArrange() {
       const d = findDevice(it.key) || {};
       return arrangeTier(it.key) >= 1 && (d.cat === "storage" || (d.u || it.u || 1) >= 2);
     };
-    let placed = false;
-    const start = rest.findIndex(isSwitchTier);
-    if (start !== -1) {
-      let run = start;
-      while (run < rest.length && isSwitchTier(rest[run])) run++;
-      const count = run - start;
-      if (count >= 2 && panels.length < count) {
-        const gaps = count - 1;
-        const place = Math.min(panels.length, gaps);
-        const gapIdx = [];
-        for (let i = 0; i < place; i++) gapIdx.push(Math.round((i + 1) * count / (place + 1)));
-        const out = rest.slice(0, start);
-        let pi = 0;
-        for (let i = start; i < run; i++) {
-          out.push(rest[i]);
-          if (gapIdx.includes(i - start + 1) && pi < panels.length) out.push(panels[pi++]);
+    const isNucLike = it => {
+      const d = findDevice(it.key) || {};
+      return (d.u || it.u || 1) >= 2 && d.cat !== "storage";
+    };
+    let hosts = rest.map((it, i) => isNucLike(it) ? i : -1).filter(i => i !== -1);
+    if (!hosts.length) hosts = rest.map((it, i) => isHeavy(it) ? i : -1).filter(i => i !== -1);
+    if (hosts.length) {
+      const hostSet = new Set(hosts);
+      const out = [];
+      let pi = 0;
+      rest.forEach((it, i) => {
+        out.push(it);
+        if (hostSet.has(i) && pi < panels.length) out.push(panels[pi++]);
+      });
+      while (pi < panels.length) out.push(panels[pi++]);
+      state.items = out;
+    } else {
+      const start = rest.findIndex(isSwitchTier);
+      if (start !== -1) {
+        let run = start;
+        while (run < rest.length && isSwitchTier(rest[run])) run++;
+        const count = run - start;
+        if (count >= 2) {
+          const gaps = count - 1;
+          const place = Math.min(panels.length, gaps);
+          const gapIdx = [];
+          for (let i = 0; i < place; i++) gapIdx.push(Math.round((i + 1) * count / (place + 1)));
+          const out = rest.slice(0, start);
+          let pi = 0;
+          for (let i = start; i < run; i++) {
+            out.push(rest[i]);
+            if (gapIdx.includes(i - start + 1) && pi < panels.length) out.push(panels[pi++]);
+          }
+          while (pi < panels.length) out.splice(run, 0, panels[pi++]);
+          out.push(...rest.slice(run));
+          state.items = out;
+        } else {
+          state.items = rest.slice(0, start + 1).concat(panels, rest.slice(start + 1));
         }
-        while (pi < panels.length) out.splice(run, 0, panels[pi++]);
-        out.push(...rest.slice(run));
-        state.items = out;
-        placed = true;
+      } else {
+        state.items = rest.concat(panels);
       }
-    }
-    if (!placed) {
-      /* clump panels directly above the topmost heavy/active device */
-      const idx = rest.map((it, i) => isHeavy(it) ? i : -1).filter(i => i !== -1);
-      const anchor = idx.length ? Math.max(...idx) + 1 : rest.length;
-      state.items = rest.slice(0, anchor).concat(panels, rest.slice(anchor));
     }
   }
   rebuild();
@@ -1124,7 +1138,7 @@ const EXAMPLES = [
   {
     key: "francis", name: "Francis's full kit",
     by: "the owner's own kit", url: "https://github.com/itsfja/Comms-Rack-calculator",
-    rack: 12, items: [["nuc10", 2, false], ["pi4", 1, false], ["ucgfiber", 1, false], ["crs305", 1, false], ["f4425pro", 1, false], ["shelf", 1, false], ["pphalf", 2, false]],
+    rack: 12, items: [["nuc10", 2, false], ["pi4", 1, false], ["ucgfiber", 1, false], ["crs305", 1, false], ["flexmini25", 2, false], ["f4425pro", 1, false], ["shelf", 1, false], ["pphalf", 2, false]],
     desc: "Everything on the list: two NUCs, Pi, UCG-Fiber, CRS305, the 4U TerraMaster and two 0.5U keystone panels \u2014 the panels bolt into the NUC cage gaps, so auto-arrange pairs them."
   }
 ];
