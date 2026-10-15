@@ -225,7 +225,7 @@
 </head>
 <body>
 <header>
-  <h1>🎛️ 10" Rack U Calculator <span class="ver">v2.0.0</span></h1>
+  <h1>🎛️ 10" Rack U Calculator <span class="ver">v2.1.0</span></h1>
   <p>Plan your 10-inch rack: pick kit, allow a patch/jack panel per device, and watch the elevation fill live.
      <span class="ex-pick">Example:
        <select id="examplePick" title="Pick a community example build — loads when you press Load">
@@ -881,7 +881,7 @@ $("resetBtn").addEventListener("click", () => {
 function arrangeTier(key) {
   const d = findDevice(key) || {};
   if (key === "ups" || key === "pdu") return 0;
-  if (/switch|sw8|sw24|crs305|flexmini/i.test(key + " " + (d.name || ""))) return 2;
+  if (/switch|sw8|sw24|crs305|flexmini|router|gateway|usg|ucg|firewall/i.test(key + " " + (d.name || ""))) return 2;
   if (key === "pp24") return 3;
   if (key === "blank" || key === "fan") return 5;
   if (d.cat === "power") return 0;
@@ -914,6 +914,41 @@ function autoArrange() {
     return a._seq - b._seq;
   });
   state.items.forEach(it => { delete it._seq; });
+  /* Interleave keystone panels evenly between the switch-tier gear so
+     each panel sits proximate to the switches/gateways it patches into. */
+  const split = [];
+  state.items.forEach(it => {
+    if (it.key === "pp24" && it.qty > 1) {
+      for (let q = 0; q < it.qty; q++) split.push(Object.assign({}, it, { qty: 1 }));
+    } else split.push(it);
+  });
+  state.items = split;
+  const panels = state.items.filter(it => it.key === "pp24");
+  if (panels.length) {
+    const rest = state.items.filter(it => it.key !== "pp24");
+    const isSwitchTier = it => arrangeTier(it.key) === 2;
+    const start = rest.findIndex(isSwitchTier);
+    if (start !== -1) {
+      let run = start;
+      while (run < rest.length && isSwitchTier(rest[run])) run++;
+      const count = run - start;
+      if (count >= 2) {
+        const gaps = count - 1;
+        const place = Math.min(panels.length, gaps);
+        const gapIdx = [];
+        for (let i = 0; i < place; i++) gapIdx.push(Math.round((i + 1) * count / (place + 1)));
+        const out = rest.slice(0, start);
+        let pi = 0;
+        for (let i = start; i < run; i++) {
+          out.push(rest[i]);
+          if (gapIdx.includes(i - start + 1) && pi < panels.length) out.push(panels[pi++]);
+        }
+        while (pi < panels.length) out.splice(run, 0, panels[pi++]);
+        out.push(...rest.slice(run));
+        state.items = out;
+      }
+    }
+  }
   rebuild();
 }
 $("arrangeBtn").addEventListener("click", autoArrange);
