@@ -229,7 +229,7 @@
 </head>
 <body>
 <header>
-  <h1>🎛️ 10" Rack U Calculator <span class="ver">v2.9.3</span></h1>
+  <h1>🎛️ 10" Rack U Calculator <span class="ver">v2.9.5</span></h1>
   <p>Plan your 10-inch rack: pick kit, allow a patch/jack panel per device, and watch the elevation fill live.
      <span class="ex-pick">Example:
        <select id="examplePick" title="Pick a community example build — loads when you press Load">
@@ -776,7 +776,7 @@ function renderWiring(rack, wire) {
 }
 
 function genGuideSvg() {
-  const U_H = 58, RACK_X = 46, RACK_W = 252, BOTTOM_Y = 666;
+  const U_H = 58, RACK_X = 46, RACK_W = 252;
   const size = state.rackSize;
   const uTop = u => BOTTOM_Y - u * U_H;
   const mid = y => y + U_H / 2;
@@ -791,7 +791,8 @@ function genGuideSvg() {
   let pos = 0;
   rows.forEach(r => { slots.push({ start: pos, ...r }); pos += r.u; });
   const used = pos;
-  const W = 1060, H = Math.max(760, 150 + size * U_H + 60);
+  const W = 1060, H = Math.max(760, 190 + size * U_H + 60);
+  const BOTTOM_Y = H - 60;
 
   let out = [];
   out.push('<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" font-family="Segoe UI, Helvetica, Arial, sans-serif">');
@@ -810,8 +811,12 @@ function genGuideSvg() {
     const y = uTop(sl.start + sl.u);
     const h = Math.max(14, sl.u * U_H - 12);
     out.push('<rect x="' + (RACK_X + 8) + '" y="' + (y + 6) + '" width="' + (RACK_W - 16) + '" height="' + h + '" rx="5" fill="' + (sl.color || "#475569") + '22" stroke="' + (sl.color || "#475569") + '" stroke-width="1.5"/>');
-    if (sl.name) out.push('<text x="' + (RACK_X + 16) + '" y="' + (y + 24) + '" fill="' + (sl.color || "#8b93a7") + '" font-size="12" font-weight="700">' + esc(sl.name) + '</text>');
-    out.push('<text x="' + (RACK_X + 16) + '" y="' + (y + Math.min(h, 40)) + '" fill="#aab2c7" font-size="10.5">' + fmt(sl.u) + 'U</text>');
+    if (h < 26) {
+      if (sl.name) out.push('<text x="' + (RACK_X + RACK_W + 12) + '" y="' + (y + 6 + h / 2 + 4) + '" fill="' + (sl.color || "#8b93a7") + '" font-size="11.5" font-weight="700">' + esc(sl.name) + ' \u00b7 ' + fmt(sl.u) + 'U</text>');
+    } else {
+      if (sl.name) out.push('<text x="' + (RACK_X + 16) + '" y="' + (y + 24) + '" fill="' + (sl.color || "#8b93a7") + '" font-size="12" font-weight="700">' + esc(sl.name) + '</text>');
+      out.push('<text x="' + (RACK_X + 16) + '" y="' + (y + Math.min(h, 40)) + '" fill="#aab2c7" font-size="10.5">' + fmt(sl.u) + 'U</text>');
+    }
   });
   for (let u = Math.ceil(used) + 1; u <= size; u++) {
     const y = uTop(u);
@@ -819,7 +824,7 @@ function genGuideSvg() {
     out.push('<text x="' + (RACK_X + 16) + '" y="' + (y + 24) + '" fill="#5c657f" font-size="10.5">free</text>');
   }
 
-  const ly = 150;
+  const ly = 190;
   out.push('<rect x="620" y="' + (ly - 40) + '" width="400" height="' + (H - ly - 40) + '" rx="12" fill="#181c2e" stroke="#2a3049"/>');
   out.push('<text x="644" y="' + (ly - 12) + '" fill="#e7ecf5" font-size="16" font-weight="700">Build list</text>');
   let yy = ly + 16;
