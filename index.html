@@ -229,7 +229,7 @@
 </head>
 <body>
 <header>
-  <h1>🎛️ 10" Rack U Calculator <span class="ver">v2.9.5</span></h1>
+  <h1>🎛️ 10" Rack U Calculator <span class="ver">v2.9.6</span></h1>
   <p>Plan your 10-inch rack: pick kit, allow a patch/jack panel per device, and watch the elevation fill live.
      <span class="ex-pick">Example:
        <select id="examplePick" title="Pick a community example build — loads when you press Load">
@@ -1017,7 +1017,7 @@ $("resetBtn").addEventListener("click", () => {
    next, keystone panels around the gear they serve, lightest gear on top. */
 function arrangeTier(key) {
   const d = findDevice(key) || {};
-  if (key === "ups" || key === "pdu") return 0;
+  if (key === "ups" || key === "pdu" || key === "shelf") return 0;
   if (/switch|sw8|sw24|crs305|flexmini|router|gateway|usg|ucg|firewall/i.test(key + " " + (d.name || ""))) return 2;
   if (key === "pp24" || key === "pphalf") return 3;
   if (key === "blank" || key === "fan") return 5;
@@ -1030,7 +1030,7 @@ function arrangeTier(key) {
 
 function arrangeWeight(key) {
   const d = findDevice(key) || {};
-  if (key === "ups" || key === "pdu") return 0;
+  if (key === "ups" || key === "pdu" || key === "shelf") return 0;
   if (d.cat === "storage" || /nas|terr|nvr|f4-?425/i.test(key + " " + (d.name || ""))) return 1;
   return 2;
 }
