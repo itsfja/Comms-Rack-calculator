@@ -156,6 +156,10 @@
     font: inherit; font-size: 13px; padding: 7px 12px; border-radius: 8px; cursor: pointer;
   }
   .ghost:hover { color: var(--ink); border-color: var(--accent); }
+  .amberbtn { background: #b45309; border: 1px solid #d97706; color: #fef3c7; }
+  .amberbtn:hover { filter: brightness(1.1); color: #fff; border-color: #f59e0b; }
+  .redbtn { background: var(--bad); border: 1px solid var(--bad); color: #fff; }
+  .redbtn:hover { filter: brightness(1.1); }
   .devicon { margin-right: 6px; }
 
   .catalog { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
@@ -282,9 +286,9 @@
       <span class="wire-toggle" title="Draw cable runs from each device to its nearest keystone/patch panel">
         <label class="switch"><input type="checkbox" id="wireToggle"><span class="slider"></span></label> Cable runs
       </span>
-      <button class="ghost" id="arrangeBtn" title="Sort the build into the recommended stack: power at the bottom, then switches, keystone panels, active gear, then blanks and fans at the top">✨ Auto-arrange</button>
+      <button class="ghost amberbtn" id="arrangeBtn" title="Sort the build into the recommended stack: power at the bottom, then switches, keystone panels, active gear, then blanks and fans at the top">✨ Auto-arrange</button>
       <button class="ghost" id="printBtn">🖨️ Print / PDF</button>
-      <button class="ghost" id="resetBtn">↺ Reset rack</button>
+      <button class="ghost redbtn" id="resetBtn">↺ Reset rack</button>
     </div>
 
     <div class="blockly-wrap" id="blocklySection" style="display:none">
