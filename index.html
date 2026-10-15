@@ -107,7 +107,7 @@
   .phys-rack {
     width: 508px; max-width: 100%; margin: 0 auto;
     background: var(--panel2); border: 2px solid var(--line); border-radius: 8px;
-    padding: 16px 18px; display: flex; flex-direction: column-reverse; gap: 0;
+    padding: 16px 18px; display: flex; flex-direction: column; gap: 0;
   }
   .phys-ru { position: relative; height: 88.9px; border-top: 1px solid var(--line); overflow: hidden; }
   .phys-ru:first-child { border-top: none; }
@@ -229,7 +229,7 @@
 </head>
 <body>
 <header>
-  <h1>🎛️ 10" Rack U Calculator <span class="ver">v2.9.0</span></h1>
+  <h1>🎛️ 10" Rack U Calculator <span class="ver">v2.9.1</span></h1>
   <p>Plan your 10-inch rack: pick kit, allow a patch/jack panel per device, and watch the elevation fill live.
      <span class="ex-pick">Example:
        <select id="examplePick" title="Pick a community example build — loads when you press Load">
@@ -496,7 +496,6 @@ function slotLabel(i, size) {
 }
 
 const PACKABLE = {
-  nuc10: { pairU: 3, singleU: 2, label: "Intel NUC (10th gen)", color: "#38bdf8", icon: "\ud83d\udda5\ufe0f" },
   flexmini: { pairU: 1, singleU: 1, label: "UniFi Flex Mini", color: "#34d399", icon: "\ud83d\udd0c" }
 };
 
@@ -587,7 +586,7 @@ function renderPhys() {
   });
   packedRows().forEach(r => rows.push({ ...r, img: null }));
   let pos = 0;
-  let html = "";
+  const cells = [];
   const cell = (r, uIdx) => {
     const h = Math.round(88.9 * Math.min(r.u, size - uIdx));
     const img = r.img ? `<img src="${r.img}" alt="" loading="lazy">` : "";
@@ -596,38 +595,37 @@ function renderPhys() {
       <div class="body"><span class="nm">${r.name}</span>${img}</div>
     </div>`;
   };
+  const jackCell = uIdx => {
+    const hj = Math.round(88.9 * state.jackU);
+    return `<div class="phys-ru" style="height:${hj}px;background:#475569">
+      <span class="lbl">${slotLabel(uIdx, size)}</span>
+      <div class="body"><span class="nm">\ud83e\ude9b Jack / patch panel</span></div>
+    </div>`;
+  };
   for (const r of rows) {
     if (pos >= size) break;
     if (r.u === 0) {
       for (let j = 0; j < r.jackAfter && pos < size; j++) {
-        const hj = Math.round(88.9 * state.jackU);
-        html += `<div class="phys-ru" style="height:${hj}px;background:#475569">
-          <span class="lbl">${slotLabel(pos, size)}</span>
-          <div class="body"><span class="nm">\ud83e\ude9b Jack / patch panel</span></div>
-        </div>`;
+        cells.push(jackCell(pos));
         pos += state.jackU;
       }
       continue;
     }
-    html += cell(r, pos);
+    cells.push(cell(r, pos));
     pos += r.u;
     for (let j = 0; j < r.jackAfter && pos < size; j++) {
-      const hj = Math.round(88.9 * state.jackU);
-      html += `<div class="phys-ru" style="height:${hj}px;background:#475569">
-        <span class="lbl">${slotLabel(pos, size)}</span>
-        <div class="body"><span class="nm">🪛 Jack / patch panel</span></div>
-      </div>`;
+      cells.push(jackCell(pos));
       pos += state.jackU;
     }
   }
   for (let s2 = 0; s2 < state.spacerU && pos < size; s2++) {
-    html += `<div class="phys-ru" style="background:#3b4666"><span class="lbl">${slotLabel(pos, size)}</span><div class="body"><span class="nm">Blank / ventilation</span></div></div>`;
+    cells.push(`<div class="phys-ru" style="background:#3b4666"><span class="lbl">${slotLabel(pos, size)}</span><div class="body"><span class="nm">Blank / ventilation</span></div></div>`);
     pos += 1;
   }
   for (let i = pos; i < size; i++) {
-    html += `<div class="phys-free"><span class="lbl">${slotLabel(i, size)}</span>free</div>`;
+    cells.push(`<div class="phys-free"><span class="lbl">${slotLabel(i, size)}</span>free</div>`);
   }
-  el.innerHTML = html;
+  el.innerHTML = cells.reverse().join("");
 }
 
 function rebuild() {
@@ -706,7 +704,7 @@ function rebuild() {
     ` <button class="chip" id="hintArrange" style="margin-left:6px">\u2728 Auto-arrange optimal stack</button>`;
 
   const tb = $("buildTable");
-  tb.innerHTML = state.items.length ? state.items.map((it, i) => `
+  tb.innerHTML = state.items.length ? state.items.map((it, ix) => [it, ix]).reverse().map(([it, i]) => `
     <tr>
       <td>${i + 1}</td>
       <td>${it.icon || "\ud83d\udce6"} ${it.name}${it.note ? `<br><span class="note">\u26a0 ${it.note}</span>` : ""}</td>
