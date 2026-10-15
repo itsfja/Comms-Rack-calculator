@@ -440,7 +440,7 @@ const KIT = [
     note: null
   },
   {
-    key: "f4425pro", name: "TerraMaster F4-425 Pro", u: 4, icon: "\ud83d\udcbe", cat: "storage",
+    key: "f4425pro", name: "TerraMaster F4-425 Pro", u: 4, icon: "\ud83d\udcbe", cat: "storage", keystones: 12,
     ports: ["2\u00d7 5GbE", "3\u00d7 USB-A 10Gbps", "1\u00d7 USB-C 10Gbps", "1\u00d7 HDMI"],
     stl: { label: "Fascia \u2014 TerraMaster F4-425 Pro shelf front (10\" rack)", url: "docs/terramaster-f4425pro-fascia.stl" },
     img: "https://www.terra-master.com/cdn/shop/files/F4-425-Pro-02.jpg",
@@ -566,7 +566,7 @@ function addItem(dev) {
     key: dev.key, name: dev.name, u: dev.u, qty: 1,
     jack: dev.key === "pp24" || dev.key === "pphalf",
     color: COLORS[state.items.length % COLORS.length],
-    icon: dev.icon, cat: dev.cat, ports: dev.ports, stl: dev.stl, img: dev.img, note: dev.note
+    icon: dev.icon, cat: dev.cat, ports: dev.ports, stl: dev.stl, img: dev.img, note: dev.note, keystones: dev.keystones || 0
   });
   rebuild();
   showStlOffer(dev);
@@ -904,7 +904,9 @@ function renderCabling() {
   const panelsInRack = state.items
     .filter(it => it.key === "pp24" || it.key === "pphalf")
     .reduce((a, it) => a + it.qty, 0);
-  const slotsInRack = panelsInRack * c.slots;
+  const fasciaSlots = state.items
+    .reduce((a, it) => a + (it.keystones || 0) * it.qty, 0);
+  const slotsInRack = panelsInRack * c.slots + fasciaSlots;
   const gap = keystones - slotsInRack;
   $("stKeys").innerHTML = `<b>${keystones}</b><span>Keystones</span>`;
   $("stPatches").innerHTML = `<b>${keystones}</b><span>Patch cords</span>`;
@@ -915,7 +917,7 @@ function renderCabling() {
   renderInlineGuide();
   $("cabHint").innerHTML =
     `<b>${c.ports}</b> ports + <b>${spareKeys}</b> spare = <b>${keystones} keystones</b> ` +
-    `(punch-down Cat6 inserts clip straight into the panels). ` +
+    `(punch-down Cat6 inserts clip straight into the panels)` + (fasciaSlots ? ` \u2014 device fascias hold <b>${fasciaSlots}</b> more. ` : `. `) +
     `At <b>${c.slots}</b> slots per panel that needs <b>${panelsNeeded} patch panel${panelsNeeded === 1 ? "" : "s"}</b>; ` +
     (panelsInRack === 0
       ? `you have none in the rack yet — add the <b>Patch panel (keystone)</b> from the catalogue.`
@@ -1135,7 +1137,7 @@ function loadExample(ex) {
     return {
       key, name: d.name, u: d.u, qty, jack, cat: d.cat,
       color: COLORS[state.items.length % COLORS.length],
-      icon: d.icon, ports: d.ports, stl: d.stl, img: d.img, note: d.note
+      icon: d.icon, ports: d.ports, stl: d.stl, img: d.img, note: d.note, keystones: d.keystones || 0
     };
   });
   rebuild();
