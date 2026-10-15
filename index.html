@@ -229,7 +229,7 @@
 </head>
 <body>
 <header>
-  <h1>🎛️ 10" Rack U Calculator <span class="ver">v2.7.0</span></h1>
+  <h1>🎛️ 10" Rack U Calculator <span class="ver">v2.8.0</span></h1>
   <p>Plan your 10-inch rack: pick kit, allow a patch/jack panel per device, and watch the elevation fill live.
      <span class="ex-pick">Example:
        <select id="examplePick" title="Pick a community example build — loads when you press Load">
@@ -456,6 +456,10 @@ const GENERIC = [
     stl: { label: "82amp \u2014 10\" rack 12-port keystone patch panel", url: "https://www.printables.com/model/1177644-10-inch-rack-12-port-keystone-patch-panel" },
     img: "https://media.printables.com/media/prints/1177644/images/8861148_dfa78980-afdf-4b8b-9923-54ddc8abb91e_17e3b797-d25c-499c-9be1e-7dee1e0a7a1f/thumbs/cover/800x800/png/render.png",
     note: "Punch-down keystones clip in \u2014 also see Maur\u00edcio Pessoa's 10-port and Eric Qian's stackable 0.5U 11-port" },
+  { key: "pphalf", name: "Patch panel (keystone, 0.5U)", u: 0.5, icon: "\ud83e\ude9b", cat: "passive",
+    ports: ["12\u00d7 keystone slots (RJ45/HDMI)", "half-height \u2014 bolts into NUC cage gaps or stacks 2 per U"],
+    stl: null, img: null,
+    note: "TecMojo-style 0.5U 12-port \u2014 two stack to fill 1U" },
   { key: "blank", name: "Blank panel", u: 1, icon: "\u25ab\ufe0f", cat: "passive", ports: null, stl: null, img: null, note: null },
   { key: "nvr", name: "NVR / DVR", u: 2, icon: "\ud83d\udc9a", cat: "comms", ports: null, stl: null, img: null, note: null },
   { key: "ups", name: "UPS (1U)", u: 1, icon: "\ud83d\udd0b", cat: "power", ports: null, stl: null, img: null, note: null },
@@ -560,7 +564,7 @@ function showStlOffer(dev) {
 function addItem(dev) {
   state.items.push({
     key: dev.key, name: dev.name, u: dev.u, qty: 1,
-    jack: dev.key === "pp24",
+    jack: dev.key === "pp24" || dev.key === "pphalf",
     color: COLORS[state.items.length % COLORS.length],
     icon: dev.icon, cat: dev.cat, ports: dev.ports, stl: dev.stl, img: dev.img, note: dev.note
   });
@@ -878,7 +882,7 @@ function renderCabling() {
   const keystones = c.ports + spareKeys;
   const panelsNeeded = Math.ceil(keystones / c.slots);
   const panelsInRack = state.items
-    .filter(it => it.key === "pp24")
+    .filter(it => it.key === "pp24" || it.key === "pphalf")
     .reduce((a, it) => a + it.qty, 0);
   const slotsInRack = panelsInRack * c.slots;
   const gap = keystones - slotsInRack;
@@ -994,7 +998,7 @@ function arrangeTier(key) {
   const d = findDevice(key) || {};
   if (key === "ups" || key === "pdu") return 0;
   if (/switch|sw8|sw24|crs305|flexmini|router|gateway|usg|ucg|firewall/i.test(key + " " + (d.name || ""))) return 2;
-  if (key === "pp24") return 3;
+  if (key === "pp24" || key === "pphalf") return 3;
   if (key === "blank" || key === "fan") return 5;
   if (d.cat === "power") return 0;
   if (d.cat === "storage" || /nas|terr|nvr|f4-?425/i.test(key + " " + (d.name || ""))) return 1;
@@ -1031,14 +1035,14 @@ function autoArrange() {
      (NUCs, NAS) so panels sit adjacent to the gear they patch into. */
   const split = [];
   state.items.forEach(it => {
-    if (it.key === "pp24" && it.qty > 1) {
+    if ((it.key === "pp24" || it.key === "pphalf") && it.qty > 1) {
       for (let q = 0; q < it.qty; q++) split.push(Object.assign({}, it, { qty: 1 }));
     } else split.push(it);
   });
   state.items = split;
-  const panels = state.items.filter(it => it.key === "pp24");
+  const panels = state.items.filter(it => it.key === "pp24" || it.key === "pphalf");
   if (panels.length) {
-    const rest = state.items.filter(it => it.key !== "pp24");
+    const rest = state.items.filter(it => it.key !== "pp24" && it.key !== "pphalf");
     const isSwitchTier = it => arrangeTier(it.key) === 2;
     const isHeavy = it => {
       const d = findDevice(it.key) || {};
@@ -1120,8 +1124,8 @@ const EXAMPLES = [
   {
     key: "francis", name: "Francis's full kit",
     by: "the owner's own kit", url: "https://github.com/itsfja/Comms-Rack-calculator",
-    rack: 12, items: [["nuc10", 2, false], ["pi4", 1, false], ["ucgfiber", 1, true], ["flexmini", 2, false], ["flexmini25", 2, false], ["crs305", 1, false], ["f4425pro", 1, false], ["shelf", 1, false]],
-    desc: "Everything on the list: two NUCs, Pi, UCG-Fiber with jack panel, four Flex Minis, CRS305 and the 4U TerraMaster — 16U of kit in a 12U, so trim jack panels or share Flex mounts to fit."
+    rack: 12, items: [["nuc10", 2, false], ["pi4", 1, false], ["ucgfiber", 1, false], ["crs305", 1, false], ["f4425pro", 1, false], ["shelf", 1, false], ["pphalf", 2, false]],
+    desc: "Everything on the list: two NUCs, Pi, UCG-Fiber, CRS305, the 4U TerraMaster and two 0.5U keystone panels \u2014 the panels bolt into the NUC cage gaps, so auto-arrange pairs them."
   }
 ];
 
@@ -1136,6 +1140,7 @@ function loadExample(ex) {
     };
   });
   rebuild();
+  autoArrange();
 }
 
 (function fillExamplePicker() {
