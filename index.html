@@ -229,7 +229,7 @@
 </head>
 <body>
 <header>
-  <h1>🎛️ 10" Rack U Calculator <span class="ver">v2.10.2</span></h1>
+  <h1>🎛️ 10" Rack U Calculator <span class="ver">v2.10.3</span></h1>
   <p>Plan your 10-inch rack: pick kit, allow a patch/jack panel per device, and watch the elevation fill live.
      <span class="ex-pick">Example:
        <select id="examplePick" title="Pick a community example build — loads when you press Load">
@@ -433,9 +433,9 @@ const KIT = [
     note: "1U each \u2014 the 2-per-1U stacking mount only fits the 1GbE Flex Mini"
   },
   {
-    key: "crs305", name: "MikroTik CRS305 (10G switch)", u: 1, icon: "\ud83d\udd00", cat: "comms",
-    ports: ["4\u00d7 10G SFP+", "1\u00d7 GbE", "DC power"],
-    stl: { label: "Mauker \u2014 CRS305-1G-4S+IN 10\" rack mount", url: "https://www.printables.com/model/1343353-mikrotik-crs305-1g-4sin-10-inch-rack-mount" },
+    key: "crs304", name: "MikroTik CRS304-4XG-IN (10G switch)", u: 1, icon: "\ud83d\udd00", cat: "comms",
+    ports: ["4\u00d7 10G RJ45", "1\u00d7 GbE", "DC power"],
+    stl: null,
     img: "https://makerworld.bblmw.com/makerworld/model/US3657ace2fd1fcc/design/2025-07-01_076c568d685778.png",
     note: null
   },
@@ -540,6 +540,7 @@ function itemTotal(it) {
 }
 
 function findDevice(key) {
+  if (key === "crs305") key = "crs304";
   return KIT.find(d => d.key === key) || GENERIC.find(d => d.key === key);
 }
 
@@ -1020,7 +1021,7 @@ $("resetBtn").addEventListener("click", () => {
 function arrangeTier(key) {
   const d = findDevice(key) || {};
   if (key === "ups" || key === "pdu" || key === "shelf") return 0;
-  if (/switch|sw8|sw24|crs305|flexmini|router|gateway|usg|ucg|firewall/i.test(key + " " + (d.name || ""))) return 2;
+  if (/switch|sw8|sw24|crs30|flexmini|router|gateway|usg|ucg|firewall/i.test(key + " " + (d.name || ""))) return 2;
   if (key === "pp24" || key === "pphalf") return 3;
   if (key === "blank" || key === "fan") return 5;
   if (d.cat === "power") return 0;
@@ -1113,8 +1114,8 @@ const EXAMPLES = [
   {
     key: "unifi", name: "UniFi network stack",
     by: "after u/airblader's first 10\" network rack (r/homelab)", url: "https://www.reddit.com/r/homelab/comments/1r22ibv/first_build_10_inch_network_rack/",
-    rack: 9, items: [["ucgfiber", 1, true], ["flexmini25", 2, false], ["crs305", 1, false], ["pp24", 1, true], ["ups", 1, false]],
-    desc: "Gateway Fiber at the top, Flex Minis stacked in shared mounts, CRS305 for 10G — a proper UniFi comms rack."
+    rack: 9, items: [["ucgfiber", 1, true], ["flexmini25", 2, false], ["crs304", 1, false], ["pp24", 1, true], ["ups", 1, false]],
+    desc: "Gateway Fiber at the top, Flex Minis stacked in shared mounts, CRS304-4XG for 10G — a proper UniFi comms rack."
   },
   {
     key: "thinknas", name: "ThinkNAS + Pi + screen",
@@ -1125,8 +1126,8 @@ const EXAMPLES = [
   {
     key: "francis", name: "Francis's full kit",
     by: "the owner's own kit", url: "https://github.com/itsfja/Comms-Rack-calculator",
-    rack: 12, items: [["nuc10", 2, false], ["pi4", 1, false], ["ucgfiber", 1, false], ["crs305", 1, false], ["flexmini25", 2, false], ["f4425pro", 1, false], ["shelf", 1, false], ["pphalf", 2, false]],
-    desc: "Everything on the list: two NUCs, Pi, UCG-Fiber, CRS305, the 4U TerraMaster and two 0.5U keystone panels \u2014 the panels bolt into the NUC cage gaps, so auto-arrange pairs them."
+    rack: 12, items: [["nuc10", 2, false], ["pi4", 1, false], ["ucgfiber", 1, false], ["crs304", 1, false], ["flexmini25", 2, false], ["f4425pro", 1, false], ["shelf", 1, false], ["pphalf", 2, false]],
+    desc: "Everything on the list: two NUCs, Pi, UCG-Fiber, CRS304-4XG, the 4U TerraMaster and two 0.5U keystone panels \u2014 the panels bolt into the NUC cage gaps, so auto-arrange pairs them."
   }
 ];
 
