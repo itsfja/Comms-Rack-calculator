@@ -225,7 +225,7 @@
 </head>
 <body>
 <header>
-  <h1>🎛️ 10" Rack U Calculator <span class="ver">v2.2.0</span></h1>
+  <h1>🎛️ 10" Rack U Calculator <span class="ver">v2.5.0</span></h1>
   <p>Plan your 10-inch rack: pick kit, allow a patch/jack panel per device, and watch the elevation fill live.
      <span class="ex-pick">Example:
        <select id="examplePick" title="Pick a community example build — loads when you press Load">
@@ -338,7 +338,7 @@
       </div>
       <div>
         <label>Height (U)</label>
-        <input type="number" id="cU" min="1" max="4" step="1" value="1">
+        <input type="number" id="cU" min="0.5" max="4" step="0.5" value="1" title="Height in U — halves allowed (e.g. 0.5U keystone panels)">
       </div>
       <div>
         <label>STL link (optional)</label>
@@ -473,6 +473,11 @@ const $ = id => document.getElementById(id);
 const save = () => localStorage.setItem("rack-calc", JSON.stringify(state));
 
 const COLORS = ["#38bdf8","#818cf8","#34d399","#fbbf24","#f472b6","#fb923c","#a78bfa","#2dd4bf"];
+
+function fmtU(n) {
+  const r = Math.round(n * 10) / 10;
+  return (Number.isInteger(r) ? r : r.toFixed(1)) + "U";
+}
 
 function slotLabel(i, size) {
   const sc = state.numScheme;
@@ -637,9 +642,9 @@ function rebuild() {
   let pos = 0;
   const out = [];
   const wire = [];
-  const render = (name, icon, tag, color, jack, img) => {
-    out.push(block(name, icon, tag, color, pos, jack, img));
-    pos += 1;
+  const render = (name, icon, tag, color, jack, img, uSize) => {
+    out.push(block(name, icon, tag, color, pos, jack, img, uSize));
+    pos += (uSize === undefined ? 1 : uSize);
   };
   for (const r of rows) {
     if (pos >= size) break;
@@ -651,19 +656,23 @@ function rebuild() {
       continue;
     }
     wire.push({ kind: "dev", slot: pos, color: r.color, name: r.name });
-    render(r.name, r.icon, r.tag, r.color, false, r.img);
-    for (let j = 1; j < r.u && pos < size; j++) render("", "", "", r.color, false, null);
+    const span = Math.min(r.u, size - pos);
+    render(r.name, r.icon, r.tag, r.color, false, r.img, span);
     for (let j = 0; j < r.jackAfter && pos < size; j++) {
       wire.push({ kind: "panel", slot: pos });
       render("", "", state.jackU + "U", "#64748b", true, null);
     }
   }
-  for (let s = 0; s < state.spacerU && pos < size; s++) render("Blank / ventilation", "\u25ab\ufe0f", "1U", "#3b4666", false, null);
+  for (let s = 0; s < state.spacerU && pos < size; s++) render("Blank / ventilation", "\\u25ab\\ufe0f", "1U", "#3b4666", false, null);
+  if (pos % 1 !== 0 && pos < size) {
+    out.push(`<div class="ru empty-ru" style="height:calc(var(--ru-h) * 0.5);flex:0 0 auto;"><span class="num">${slotLabel(Math.floor(pos), size)}</span><span class="fill"></span></div>`);
+    pos = Math.ceil(pos);
+  }
   for (let i = pos; i < size; i++) {
     out.push(`<div class="ru empty-ru"><span class="num">${slotLabel(i, size)}</span><span class="fill"></span><span style="opacity:.35;font-size:9px">free</span></div>`);
   }
   if (over > 0) {
-    out.push(`<div class="ru empty-ru" style="border-color:var(--bad)"><span class="num" style="color:var(--bad)">!</span><span class="fill" style="border-color:var(--bad)"></span><span style="color:var(--bad);font-size:10px">\u26a0 ${over}U over capacity</span></div>`);
+    out.push(`<div class="ru empty-ru" style="border-color:var(--bad)"><span class="num" style="color:var(--bad)">!</span><span class="fill" style="border-color:var(--bad)"></span><span style="color:var(--bad);font-size:10px">\u26a0 ${fmtU(over)} over capacity</span></div>`);
   }
   rack.innerHTML = out.join("");
   rack.style.setProperty("--ru-h", Math.max(14, Math.round(330 / size) - 3) + "px");
@@ -671,20 +680,20 @@ function rebuild() {
   renderPhys();
 
   const pct = Math.round((used / size) * 100);
-  $("stUsed").innerHTML = `<b>${used}U</b><span>Used</span>`;
-  $("stFree").innerHTML = `<b>${Math.max(0, size - used)}U</b><span>Free</span>`;
+  $("stUsed").innerHTML = `<b>${fmtU(used)}</b><span>Used</span>`;
+  $("stFree").innerHTML = `<b>${fmtU(Math.max(0, size - used))}</b><span>Free</span>`;
   const pc = $("stPct");
   pc.className = "stat " + (pct > 100 ? "bad" : pct >= 90 ? "warn" : "ok");
   pc.innerHTML = `<b>${pct}%</b><span>Utilisation</span>`;
   $("stDev").innerHTML = `<b>${state.items.reduce((a, i) => a + i.qty, 0)}</b><span>Devices</span>`;
 
   $("hint").innerHTML =
-    `Total kit: <b>${used}U</b> in a <b>${size}U</b> 10" rack. ` +
+    `Total kit: <b>${fmtU(used)}</b> in a <b>${size}U</b> 10" rack. ` +
     (over > 0
-      ? `\u26a0 You're <b>${over}U over</b> \u2014 remove kit, shrink jack panel U, or pick a taller rack.`
+      ? `\u26a0 You're <b>${fmtU(over)} over</b> \u2014 remove kit, shrink jack panel U, or pick a taller rack.`
       : used === size
         ? `\u2705 Perfect fit \u2014 rack is full.`
-        : `\u2705 Fits with <b>${size - used}U</b> to spare (or for growth).`) +
+        : `\u2705 Fits with <b>${fmtU(size - used)}</b> to spare (or for growth).`) +
     ` <button class="chip" id="hintArrange" style="margin-left:6px">\u2728 Auto-arrange optimal stack</button>`;
 
   const tb = $("buildTable");
@@ -693,12 +702,12 @@ function rebuild() {
       <td>${i + 1}</td>
       <td>${it.icon || "\ud83d\udce6"} ${it.name}${it.note ? `<br><span class="note">\u26a0 ${it.note}</span>` : ""}</td>
       <td>${it.ports ? `<div class="ports">${it.ports.join("<br>")}</div>` : "\u2014"}</td>
-      <td style="text-align:center">${it.u}U${it.jack && state.jackU > 0 ? `+${state.jackU}` : ""}</td>
+      <td style="text-align:center">${fmtU(it.u)}${it.jack && state.jackU > 0 ? `+${state.jackU}` : ""}</td>
       <td><div class="qtyctl">
         <button data-a="dec" data-i="${i}">\u2212</button><span>${it.qty}</span><button data-a="inc" data-i="${i}">\uff0b</button>
       </div></td>
       <td><label class="switch"><input type="checkbox" data-a="jack" data-i="${i}" ${it.jack ? "checked" : ""}><span class="slider"></span></label></td>
-      <td class="totu">${itemTotal(it)}U</td>
+      <td class="totu">${fmtU(itemTotal(it))}</td>
       <td>${it.stl
         ? `<a class="stllink" href="${it.stl.url}" target="_blank" rel="noopener" title="${it.stl.label}" style="width:auto;padding:0 8px;font-size:11px;">\u2b07 ${it.stl.label.split(" \u2014 ")[0]}</a>`
         : `<a class="stllink" href="#" title="Search for a 10" rack mount STL" style="width:auto;padding:0 8px;font-size:11px;" data-search="${encodeURIComponent(it.name)}">🔍 search</a>`}</td>
@@ -726,9 +735,8 @@ function renderWiring(rack, wire) {
   const devs = wire.filter(w => w.kind === "dev" && w.name);
   const panels = wire.filter(w => w.kind === "panel");
   if (!devs.length || !panels.length) return;
-  const rowsEls = rack.querySelectorAll(".ru");
   const slotY = slot => {
-    const el = rowsEls[slot];
+    const el = rack.querySelector(`[data-slot="${slot}"]`);
     if (!el) return null;
     return el.offsetTop + el.offsetHeight / 2;
   };
@@ -791,15 +799,16 @@ function renderCabling() {
     ` Patch cords: <b>${keystones}</b> short front-of-rack runs, plus about <b>${Math.ceil(keystones * c.len)}m</b> of bulk cable at ${c.len}m per run.`;
 }
 
-function block(name, icon, tag, color, uNum, jack, img) {
+function block(name, icon, tag, color, uNum, jack, img, uSize) {
   const bg = jack ? "#475569" : `linear-gradient(180deg,${color},${color}cc)`;
-  const label = jack ? "\ud83e\ude9b Jack / patch panel" : `<span class="devicon">${icon || "\ud83d\udce6"}</span>${name}`;
+  const label = jack ? "\\ud83e\\ude9b Jack / patch panel" : `<span class="devicon">${icon || "\\ud83d\\udce6"}</span>${name}`;
   const imgEl = img
     ? `<span class="panel-img" style="background-image:url('${img}')"></span>`
     : "";
-  return `<div class="ru dev-ru jack" style="background:${bg}">` +
+  const hStyle = uSize !== undefined ? `height:calc(var(--ru-h) * ${uSize});flex:0 0 auto;` : "";
+  return `<div class="ru dev-ru jack" data-slot="${uNum}" style="background:${bg};${hStyle}">` +
     imgEl +
-    `<span class="num">${slotLabel(uNum, state.rackSize)}</span><span class="name">${label}</span>` +
+    `<span class="num">${slotLabel(Math.floor(uNum), state.rackSize)}</span><span class="name">${label}</span>` +
     (tag ? `<span class="tag">${tag}</span>` : "") + `</div>`;
 }
 
@@ -850,7 +859,7 @@ $("buildTable").addEventListener("change", e => {
 
 $("addCustom").addEventListener("click", () => {
   const name = $("cName").value.trim();
-  const u = Math.max(1, Math.min(4, +$("cU").value || 1));
+  const u = Math.max(0.5, Math.min(4, +$("cU").value || 1));
   if (!name) { $("cName").focus(); return; }
   const url = $("cStl").value.trim();
   const creator = $("cCreator").value.trim();
