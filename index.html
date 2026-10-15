@@ -872,28 +872,41 @@ $("resetBtn").addEventListener("click", () => {
   state.items = []; state.spacerU = 0; rebuild();
 });
 
-/* Optimal stack: heavy power at the bottom, switch hub next, keystone
-   panels around the gear they serve, rarely-touched gear on top. */
+/* Optimal stack: heaviest gear (power, storage) at the bottom, switch hub
+   next, keystone panels around the gear they serve, lightest gear on top. */
 function arrangeTier(key) {
   const d = findDevice(key) || {};
   if (key === "ups" || key === "pdu") return 0;
-  if (/switch|sw8|sw24|crs305|flexmini/i.test(key + " " + (d.name || ""))) return 1;
-  if (key === "pp24") return 2;
+  if (/switch|sw8|sw24|crs305|flexmini/i.test(key + " " + (d.name || ""))) return 2;
+  if (key === "pp24") return 3;
   if (key === "blank" || key === "fan") return 5;
   if (d.cat === "power") return 0;
-  if (d.cat === "passive") return 2;
-  return 3;
+  if (d.cat === "storage" || /nas|terr|nvr|f4-?425/i.test(key + " " + (d.name || ""))) return 1;
+  if (d.cat === "passive") return 3;
+  if (d.u >= 2) return 4;
+  return 4;
+}
+
+function arrangeWeight(key) {
+  const d = findDevice(key) || {};
+  if (key === "ups" || key === "pdu") return 0;
+  if (d.cat === "storage" || /nas|terr|nvr|f4-?425/i.test(key + " " + (d.name || ""))) return 1;
+  return 2;
 }
 
 function autoArrange() {
   if (!state.items.length) return;
-  const tiers = [0, 1, 2, 3, 5];
   const seen = {};
   state.items.forEach(it => { seen[it.key] = (seen[it.key] || 0) + 1; });
   state.items.forEach(it => { it._seq = seen[it.key]--; });
   state.items.sort((a, b) => {
     const ta = arrangeTier(a.key), tb = arrangeTier(b.key);
     if (ta !== tb) return ta - tb;
+    const wa = arrangeWeight(a.key), wb = arrangeWeight(b.key);
+    if (wa !== wb) return wa - wb;
+    const ua = (findDevice(a.key) || {}).u || a.u || 1;
+    const ub = (findDevice(b.key) || {}).u || b.u || 1;
+    if (ua !== ub) return ub - ua;
     return a._seq - b._seq;
   });
   state.items.forEach(it => { delete it._seq; });
